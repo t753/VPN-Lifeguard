@@ -10,12 +10,27 @@ Public pr As Process
 Public Sub Form_Open()
 
   Dim sRet As String
+  Dim sVPNnameLen As Integer
+  Dim sVPNuuidLen As Integer
+  
+  Dim FirstColonPos As Integer
+  Dim SecondColonPos As Integer
+  Dim NewLinePos As Integer
+  Dim Initialize As String = "Log File initialized " '& Now
+
 
   ' get informations on connection to get name and vpn ID
   Shell "nmcli -t -f TYPE,NAME,UUID c | grep vpn" To sRet
-  sRet = Mid(sRet, Len("vpn:") + 1)
-  sVPNname = Mid(sRet, 1, InStr(sRet, ":") - 1)
-  sVPNuuid = Mid(sRet, InStr(sRet, ":") + 1)
+ 
+  FirstColonPos = InStr(sRet, ":", 0, 1)
+  SecondColonPos = InStr(sRet, ":", FirstColonPos + 1, 1)
+  NewLinePos = InStr(sRet, Chr(10), SecondColonPos + 1, 1)
+  
+  sVPNnameLen = SecondColonPos - FirstColonPos - 1
+  sVPNname = Mid(sRet, FirstColonPos + 1, sVPNnameLen)
+  
+  sVPNuuidLen = NewLinePos - SecondColonPos - 1
+  sVPNuuid = Mid(sRet, SecondColonPos + 1, sVPNuuidLen)
 
   lblStatusBar.Text = "Disconnected"
 
@@ -27,14 +42,27 @@ Public Sub Form_Open()
   ' set monitoring on vpn connection
   pr = Shell "dbus-monitor --system type='signal',interface='org.freedesktop.NetworkManager.VPN.Connection',member='VpnStateChanged'" For Read As "procDBusMonitor"
 
-
   ' enable timer
   timerReload.Delay = 1000 ' 1 second
   timerReload.Enabled = True
    
   lblStatusBar.Text = "Connection..."
+  
+  Initialize &= GetTime()
+  WriteToLogFile("Initialize", Initialize)
 
 End
+
+Public Function GetTime() As String
+  
+  Dim date_time As String
+  
+  Shell "date +'%Y-%m-%d %H:%M:%S'" To date_time
+  
+  Return date_time
+  
+End
+
 
 Public Sub cmdConfig_Click()
 
@@ -128,7 +156,11 @@ Public Sub timerReload_Timer()
 
   Dim chk As Object
   Dim sRet As String
-
+  Dim command As String
+  Dim Entry As String = "VPN Connection re-established and Application(s) restarted " '& Now
+  Dim Couldnt_Kill As String = "VPN Connection re-established and Application(s) already running " '& Now
+  Dim sMessage As String
+  
   ' Timer to check state of VPN connection
   ' if connected = ok, nothing to do
   ' if disconnected = connect and reload applis
@@ -136,8 +168,9 @@ Public Sub timerReload_Timer()
   timerReload.Delay = 10000 ' 10 seconds
 
   ' get status of all connections
-  Shell "nmcli con status" To sRet
-
+  command = "nmcli con show --active | grep " & sVPNname
+  Shell command To sRet
+ 
   ' check state of vpn
   If InStr(sRet, sVPNname) Then
 
@@ -155,8 +188,18 @@ Public Sub timerReload_Timer()
         ' each checkbox
         If (chk.Tag = "chkApplis") And If (chk.Text <> "") And If (chk.value = True) Then
           ' load applications
-          Shell "exec " & chk.Text
+            
+            If Apps_Killed = True Then
+              sMessage = Entry & GetTime()
+            Else
+              sMessage = Couldnt_Kill & GetTime()
+            Endif
+            
+            Shell "exec " & chk.Text
+            WriteToLogFile("Append", sMessage)
+
         Endif
+        
       Next
 
       lblStatusBar.Text = "Connected + monitoring"
@@ -168,10 +211,14 @@ Public Sub timerReload_Timer()
     ' disconnected then reconnection   
     
     Wait 1 's
+ 
     Shell "nmcli con up uuid " & sVPNuuid
+
+    Wait 2 's
 
     ' flag that the vpn will be reconnected
     bFlag = True
+  
 
   Endif
 
@@ -228,18 +275,127 @@ Public Sub procDBusMonitor_Read()
 
 End
 
+Public Sub WriteToLogFile(sMode As String, sMessage As String)
+
+  Dim Folder As String = "~/.vpnlifeguard"
+  Dim FileName As String = Folder & "/log.txt"
+  Dim FileSize As Integer
+  
+  If Not Exist(Folder) Then
+  
+    Mkdir Folder
+  
+  Endif
+
+  If sMode = "Initialize" Then 
+    
+    If Not Exist(FileName) Then
+  
+      'Initialize = Initialize & Now
+      WriteToFile(FileName, sMessage)
+  
+    Else
+      
+      With Stat(FileName)
+        FileSize = Round(.Size / 1024)
+      End With
+      
+      If FileSize > 50 Then
+        
+        Shell "rm " & FileName
+        Wait 1 's
+        WriteToFile(FileName, sMessage)
+     
+      Else
+  
+        'Initialize = Initialize & Now
+        AppendToFile(FileName, sMessage)
+    
+      Endif
+      
+    Endif
+  
+  
+  Else 
+  
+    'Entry_Error = Entry_Error & Now
+    AppendToFile(FileName, sMessage)
+     
+  Endif
+ 
+End
+
+Public Sub WriteToFile(FileName As String, sMessage As String)
+  
+    Dim hFile As File
+    
+    hFile = Open FileName For Create
+    sMessage = sMessage & Chr(10)
+    Write #hFile, sMessage
+    
+End
+
+Public Sub AppendToFile(FileName As String, sMessage As String)
+
+    Dim hFile As File
+    
+    hFile = Open FileName For Append
+    sMessage = sMessage & Chr(10)
+    Write #hFile, sMessage
+
+End
+
 Private Sub KillApplis()
 
   Dim chk As Object, k As Byte
-
+  Dim chk_kill As String
+  Dim sMessage As String
+  Dim Kill_Attempts As Integer = 0
+  
   For Each chk In FMain.Controls
     ' each checkbox
     If (chk.Tag = "chkApplis") And If (chk.Text <> "") And If (chk.value = True) Then
-      For k = 1 To 3
-        ' close applications
-        Shell "pkill " & chk.Text
-      Next
-    Endif
+       
+        For k = 1 To 25
+          ' close applications
+          
+          Kill_Attempts += 1
+                  
+          If Kill_Attempts = 1 Then
+                 
+            sMessage = "Connection lost ... Trying to Kill Application(s) ... " & GetTime()
+            WriteToLogFile("Append", sMessage)
+         
+          Endif
+          
+          Shell "pkill " & chk.Text
+        
+          Shell "pgrep " & chk.Text To chk_kill
+          
+          If Not chk_kill = "" Then 
+            
+            Apps_Killed = False
+            lblStatusBar.Text = "Connection lost ... Trying to Kill Application(s) ..."
+       
+          Else
+         
+            sMessage = "Application(s) ... killed ... number of attempts = " & Str$(Kill_Attempts) & " " & GetTime()
+            WriteToLogFile("Append", sMessage)
+         
+            Apps_Killed = True
+            Break
+              
+          Endif
+          
+          If Kill_Attempts = 25 Then
+          
+            sMessage = "Couldn't Kill Application(s) ... number of attempts = 25 " & GetTime()
+            WriteToLogFile("Append", sMessage)
+          
+          Endif
+ 
+        Next
+     Endif
   Next
 
 End
