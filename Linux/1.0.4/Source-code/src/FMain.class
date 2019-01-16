@@ -214,7 +214,7 @@ Public Sub timerReload_Timer()
  
     Shell "nmcli con up uuid " & sVPNuuid
 
-    Wait 2 's
+    'Wait 2 's
 
     ' flag that the vpn will be reconnected
     bFlag = True
