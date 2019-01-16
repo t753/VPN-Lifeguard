@@ -347,16 +347,28 @@ End
 
 Private Sub KillApplis()
 
+  'The log file entries for this procedure can be used primarily to track if you have a process
+  'that can't be killed, like sometimes what happens with qbittorrent. If you check the log file
+  'often you might see entries that the Appication(s) couldn't be killed. Then you can quit VPN Ligeguard
+  'and try to kill the process manually using the terminal, e.g. 'pkill qbittorrent' or 'killall qbittorrent'.
+  'Then if you can't kill the process usually you have to restart the OS. You can check if a process is still
+  'active with, e.g., 'pgrep qbittorrent'. If if lists a number(s), the process is still active.
+
   Dim chk As Object, k As Byte
   Dim chk_kill As String
   Dim sMessage As String
   Dim Kill_Attempts As Integer = 0
+  Dim TimeExposed As Float
+  Dim TimeStart As Float
+  Dim TimeEnd As Float
+  
+  TimeStart = GetCurrentTime()
   
   For Each chk In FMain.Controls
     ' each checkbox
     If (chk.Tag = "chkApplis") And If (chk.Text <> "") And If (chk.value = True) Then
        
-        For k = 1 To 25
+        For k = 1 To 10
           ' close applications
           
           Kill_Attempts += 1
@@ -368,7 +380,7 @@ Private Sub KillApplis()
          
           Endif
           
-          Shell "pkill " & chk.Text
+          Shell "killall " & chk.Text
         
           Shell "pgrep " & chk.Text To chk_kill
           
@@ -379,7 +391,9 @@ Private Sub KillApplis()
        
           Else
          
-            sMessage = "Application(s) ... killed ... number of attempts = " & Str$(Kill_Attempts) & " " & GetTime()
+            TimeEnd = GetCurrentTime()
+            TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
+            sMessage = "Application(s) ... killed ... number of attempts = " & Str$(Kill_Attempts) & " ... time exposed = " & Str$(TimeExposed) & " seconds " & GetTime() 
             WriteToLogFile("Append", sMessage)
          
             Apps_Killed = True
@@ -387,15 +401,38 @@ Private Sub KillApplis()
               
           Endif
           
-          If Kill_Attempts = 25 Then
+          If Kill_Attempts = 10 Then
           
-            sMessage = "Couldn't Kill Application(s) ... number of attempts = 25 " & GetTime()
+            TimeEnd = GetCurrentTime()
+            TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
+            sMessage = "Couldn't Kill Application(s) ... number of attempts = 10 ... " & " time exposed = " & Str$(TimeExposed) & " seconds " & GetTime()
             WriteToLogFile("Append", sMessage)
           
           Endif
+          
+          Wait 0.1 's
  
         Next
      Endif
   Next
 
+End
+
+Public Function GetCurrentTime() As Float
+
+  Dim CurrentTime As Float
+  Dim CurrentTimeStr As String
+ 
+  Shell "date +%s%3N" To CurrentTimeStr
+  CurrentTime = Val(CurrentTimeStr)
+  Return CurrentTime
+  
+End
+
+Public Function GetTimeElapsed(StartTime As Float, EndTime As Float) As Float
+  
+  Dim Elapsed As Float
+  Elapsed = ((EndTime - StartTime) / 1000)
+  Return Elapsed
+  
 End
