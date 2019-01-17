@@ -354,12 +354,6 @@ Private Sub KillApplis()
   ' Then if you can't kill the process usually you have to restart the OS. You can check if a process is still
   ' active with, e.g., 'pgrep qbittorrent'. If if lists a number(s), the process is still active.
   
-  ' If torrenting it is recommded to use a torrent application such as qbittorrent that will let you bind
-  ' the network interface to the vpn connection. In qbittorrent go to Tools | Preferences | Advanced | Network Interface
-  ' and select your vpn connection to bind to, usually "tun0". They way when the vpn connection is lost,
-  ' the application will not tranfer any information and your real ip address should not be registered in
-  ' connected torrent clients.
-
   Dim chk As Object, k As Byte
   Dim chk_kill As String
   Dim sMessage As String
