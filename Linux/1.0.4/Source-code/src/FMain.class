@@ -347,12 +347,18 @@ End
 
 Private Sub KillApplis()
 
-  'The log file entries for this procedure can be used primarily to track if you have a process
-  'that can't be killed, like sometimes what happens with qbittorrent. If you check the log file
-  'often you might see entries that the Appication(s) couldn't be killed. Then you can quit VPN Ligeguard
-  'and try to kill the process manually using the terminal, e.g. 'pkill qbittorrent' or 'killall qbittorrent'.
-  'Then if you can't kill the process usually you have to restart the OS. You can check if a process is still
-  'active with, e.g., 'pgrep qbittorrent'. If if lists a number(s), the process is still active.
+  ' The log file entries for this procedure can be used primarily to track if you have a process
+  ' that can't be killed, like sometimes what happens with qbittorrent. If you check the log file
+  ' often you might see entries that the Appication(s) couldn't be killed. Then you can quit VPN Ligeguard
+  ' and try to kill the process manually using the terminal, e.g. 'pkill qbittorrent' or 'killall qbittorrent'.
+  ' Then if you can't kill the process usually you have to restart the OS. You can check if a process is still
+  ' active with, e.g., 'pgrep qbittorrent'. If if lists a number(s), the process is still active.
+  
+  ' If torrenting it is recommded to use a torrent application such as qbittorrent that will let you bind
+  ' the network interface to the vpn connection. In qbittorrent go to Tools | Preferences | Advanced | Network Interface
+  ' and select your vpn connection to bind to, usually "tun0". They way when the vpn connection is lost,
+  ' the application will not tranfer any information and your real ip address should not be registered in
+  ' connected torrent clients.
 
   Dim chk As Object, k As Byte
   Dim chk_kill As String
@@ -368,8 +374,14 @@ Private Sub KillApplis()
     ' each checkbox
     If (chk.Tag = "chkApplis") And If (chk.Text <> "") And If (chk.value = True) Then
        
-        For k = 1 To 10
+        For k = 1 To 4
           ' close applications
+          
+          ' Originally the edit here changed the "k" to 10 from 3,
+          ' but it shouldn't take more than 3 attempts to close the application.
+          ' So I changed the "k" loop to 4 so as not to give the application
+          ' exposure any more than necesaary. That way the loop can finish and
+          ' the vpn connection can be re-established, limiting application exposure.
           
           Kill_Attempts += 1
                   
@@ -401,11 +413,11 @@ Private Sub KillApplis()
               
           Endif
           
-          If Kill_Attempts = 10 Then
+          If Kill_Attempts = 4 Then
           
             TimeEnd = GetCurrentTime()
             TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
-            sMessage = "Couldn't Kill Application(s) ... number of attempts = 10 ... " & " time exposed = " & Str$(TimeExposed) & " seconds " & GetTime()
+            sMessage = "Couldn't Kill Application(s) ... number of attempts = 4 ... " & " time exposed = " & Str$(TimeExposed) & " seconds " & GetTime()
             WriteToLogFile("Append", sMessage)
           
           Endif
