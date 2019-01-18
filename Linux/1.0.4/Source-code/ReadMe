@@ -1,8 +1,8 @@
 Rename folder "src" to ".src"
 
 You can install the application from the .deb file. That way the application can remember
-The applications to monitor each time you start it.
+the applications to monitor each time you start it.
 
 Then you can load the project into Gambas3, make the edits (not necessary in this repository),
-and then make an executable. You can then copy and paste the executable to the desktop,
+and then make an executable (VPNLifeguard.gambas). You can then copy and paste the executable to the desktop,
 and just run it.
