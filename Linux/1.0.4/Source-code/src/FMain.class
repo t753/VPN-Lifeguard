@@ -387,7 +387,9 @@ Private Sub KillApplis()
           Endif
           
           Shell "killall " & chk.Text
-        
+          
+          Sleep 0.05 's Give a little time for system to kill application
+          
           Shell "pgrep " & chk.Text To chk_kill
           
           If Not chk_kill = "" Then 
@@ -415,10 +417,7 @@ Private Sub KillApplis()
             WriteToLogFile("Append", sMessage)
           
           Endif
-          
-          Wait 0.1 's
- 
-        Next
+       Next
      Endif
   Next
 
