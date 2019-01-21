@@ -6,6 +6,7 @@ Private sApplis As String ' Name of the application in process
 Private sNumberApplis As String ' Number of applications
 Private bFlag As Boolean ' Flag of connection after disconnection
 Public pr As Process
+Public Apps_Killed As Boolean
 
 Public Sub Form_Open()
 
