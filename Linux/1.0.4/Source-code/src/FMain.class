@@ -392,7 +392,7 @@ Private Sub KillApplis()
           
           Shell "pgrep " & chk.Text To chk_kill
           
-         If chk_kill = "" Then 
+          If chk_kill = "" Then 
          
             TimeEnd = GetCurrentTime()
             TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
