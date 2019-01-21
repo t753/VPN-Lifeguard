@@ -392,12 +392,7 @@ Private Sub KillApplis()
           
           Shell "pgrep " & chk.Text To chk_kill
           
-          If Not chk_kill = "" Then 
-            
-            Apps_Killed = False
-            lblStatusBar.Text = "Connection lost ... Trying to Kill Application(s) ..."
-       
-          Else
+         If chk_kill = "" Then 
          
             TimeEnd = GetCurrentTime()
             TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
