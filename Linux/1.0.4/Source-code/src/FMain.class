@@ -355,6 +355,12 @@ Private Sub KillApplis()
   ' Then if you can't kill the process usually you have to restart the OS. You can check if a process is still
   ' active with, e.g., 'pgrep qbittorrent'. If if lists a number(s), the process is still active.
   
+  ' If torrenting it is recommded to use a torrent application such as qbittorrent that will let you bind
+  ' the network interface to the vpn connection. In qbittorrent go to Tools | Preferences | Advanced | Network Interface
+  ' and select your vpn connection to bind to, usually "tun0". They way when the vpn connection is lost,
+  ' the application will not tranfer any information and your real ip address should not be registered in
+  ' connected torrent clients.
+
   Dim chk As Object, k As Byte
   Dim chk_kill As String
   Dim sMessage As String
@@ -362,6 +368,7 @@ Private Sub KillApplis()
   Dim TimeExposed As Float
   Dim TimeStart As Float
   Dim TimeEnd As Float
+  Dim LogMessage As Boolean
   
   TimeStart = GetCurrentTime()
   
@@ -378,41 +385,151 @@ Private Sub KillApplis()
           ' exposure any more than necesaary. That way the loop can finish and
           ' the vpn connection can be re-established, limiting application exposure.
           
+          LogMessage = False
+          
+          Apps_Killed = False
+          
           Kill_Attempts += 1
-                  
-          If Kill_Attempts = 1 Then
-                 
-            sMessage = "Connection lost ... Trying to Kill Application(s) ... " & GetTime()
-            WriteToLogFile("Append", sMessage)
-         
-          Endif
-          
-          Shell "killall " & chk.Text
-          
-          Sleep 0.05 's Give a little time for system to kill application
           
           Shell "pgrep " & chk.Text To chk_kill
+           
+          If Not chk_kill = "" Then
+                    
+            Shell "killall " & chk.Text
+            LogMessage = True
+         
+          Endif
+           
+          Shell "pgrep " & chk.Text To chk_kill
           
-          If chk_kill = "" Then 
+          If LogMessage = True Then
+ 
+            If chk_kill = "" Or Kill_Attempts = 1 Then 
+        
+              TimeEnd = GetCurrentTime()
+              TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
+              sMessage = "Connection lost ... Killing " & chk.Text & " ... number of attempts = " & Str$(Kill_Attempts) & " ... time exposed = " & Str$(TimeExposed) & " seconds " & GetTime() 
+              WriteToLogFile("Append", sMessage)
          
-            TimeEnd = GetCurrentTime()
-            TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
-            sMessage = "Application(s) ... killed ... number of attempts = " & Str$(Kill_Attempts) & " ... time exposed = " & Str$(TimeExposed) & " seconds " & GetTime() 
-            WriteToLogFile("Append", sMessage)
-         
-            Apps_Killed = True
-            Break
+             If chk_kill = "" Then
+               
+              Apps_Killed = True
+              Break
               
+             Endif
+              
+            Endif
+          
+            If Kill_Attempts = 4 Then
+          
+              TimeEnd = GetCurrentTime()
+              TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
+              sMessage = "Connection lost ... Couldn't Kill Application(s) ... number of attempts = 4" & " ... time exposed = " & Str$(TimeExposed) & " seconds " & GetTime()
+              WriteToLogFile("Append", sMessage)
+          
+            Endif
+            
+          Else
+            
+             Apps_Killed = True
+             Break
+            
           Endif
+             
+       Next
+     Endif
+  Next
+
+EndPrivate Sub KillApplis()
+
+  ' The log file entries for this procedure can be used primarily to track if you have a process
+  ' that can't be killed, like sometimes what happens with qbittorrent. If you check the log file
+  ' often you might see entries that the Appication(s) couldn't be killed. Then you can quit VPN Ligeguard
+  ' and try to kill the process manually using the terminal, e.g. 'pkill qbittorrent' or 'killall qbittorrent'.
+  ' Then if you can't kill the process usually you have to restart the OS. You can check if a process is still
+  ' active with, e.g., 'pgrep qbittorrent'. If if lists a number(s), the process is still active.
+  
+  ' If torrenting it is recommded to use a torrent application such as qbittorrent that will let you bind
+  ' the network interface to the vpn connection. In qbittorrent go to Tools | Preferences | Advanced | Network Interface
+  ' and select your vpn connection to bind to, usually "tun0". They way when the vpn connection is lost,
+  ' the application will not tranfer any information and your real ip address should not be registered in
+  ' connected torrent clients.
+
+  Dim chk As Object, k As Byte
+  Dim chk_kill As String
+  Dim sMessage As String
+  Dim Kill_Attempts As Integer = 0
+  Dim TimeExposed As Float
+  Dim TimeStart As Float
+  Dim TimeEnd As Float
+  Dim LogMessage As Boolean
+  
+  TimeStart = GetCurrentTime()
+  
+  For Each chk In FMain.Controls
+    ' each checkbox
+    If (chk.Tag = "chkApplis") And If (chk.Text <> "") And If (chk.value = True) Then
+       
+        For k = 1 To 4
+          ' close applications
           
-          If Kill_Attempts = 4 Then
+          ' Originally the edit here changed the "k" to 10 from 3,
+          ' but it shouldn't take more than 3 attempts to close the application.
+          ' So I changed the "k" loop to 4 so as not to give the application
+          ' exposure any more than necesaary. That way the loop can finish and
+          ' the vpn connection can be re-established, limiting application exposure.
           
-            TimeEnd = GetCurrentTime()
-            TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
-            sMessage = "Couldn't Kill Application(s) ... number of attempts = 4 ... " & " time exposed = " & Str$(TimeExposed) & " seconds " & GetTime()
-            WriteToLogFile("Append", sMessage)
+          LogMessage = False
           
+          Apps_Killed = False
+          
+          Kill_Attempts += 1
+          
+          Shell "pgrep " & chk.Text To chk_kill
+           
+          If Not chk_kill = "" Then
+                    
+            Shell "killall " & chk.Text
+            LogMessage = True
+         
           Endif
+           
+          Shell "pgrep " & chk.Text To chk_kill
+          
+          If LogMessage = True Then
+ 
+            If chk_kill = "" Or Kill_Attempts = 1 Then 
+        
+              TimeEnd = GetCurrentTime()
+              TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
+              sMessage = "Connection lost ... Killing " & chk.Text & " ... number of attempts = " & Str$(Kill_Attempts) & " ... time exposed = " & Str$(TimeExposed) & " seconds " & GetTime() 
+              WriteToLogFile("Append", sMessage)
+         
+             If chk_kill = "" Then
+               
+              Apps_Killed = True
+              Break
+              
+             Endif
+              
+            Endif
+          
+            If Kill_Attempts = 4 Then
+          
+              TimeEnd = GetCurrentTime()
+              TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
+              sMessage = "Connection lost ... Couldn't Kill Application(s) ... number of attempts = 4" & " ... time exposed = " & Str$(TimeExposed) & " seconds " & GetTime()
+              WriteToLogFile("Append", sMessage)
+          
+            Endif
+            
+          Else
+            
+             Apps_Killed = True
+             Break
+            
+          Endif
+             
        Next
      Endif
   Next
