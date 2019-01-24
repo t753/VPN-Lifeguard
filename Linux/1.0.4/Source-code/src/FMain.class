@@ -215,7 +215,7 @@ Public Sub timerReload_Timer()
  
     Shell "nmcli con up uuid " & sVPNuuid
 
-    'Wait 2 's
+    Sleep 1.0 's Wait for VPN Connection to be re-established
 
     ' flag that the vpn will be reconnected
     bFlag = True
