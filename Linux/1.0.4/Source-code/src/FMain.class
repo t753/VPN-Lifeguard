@@ -381,61 +381,39 @@ Private Sub KillApplis()
           
           ' Originally the edit here changed the "k" to 10 from 3,
           ' but it shouldn't take more than 3 attempts to close the application.
-          ' So I changed the "k" loop to 4 so as not to give the application
-          ' exposure any more than necesaary. That way the loop can finish and
+          ' So I changed the "k" loop to 4. That way the loop can finish and
           ' the vpn connection can be re-established, limiting application exposure.
-          
-          LogMessage = False
           
           Apps_Killed = False
           
           Kill_Attempts += 1
           
-          Shell "pgrep " & chk.Text To chk_kill
-           
-          If Not chk_kill = "" Then
-                    
-            Shell "killall " & chk.Text
-            LogMessage = True
-         
-          Endif
-           
+          Shell "killall " & chk.Text
+            
           Shell "pgrep " & chk.Text To chk_kill
           
-          If LogMessage = True Then
- 
-            If chk_kill = "" Or Kill_Attempts = 1 Then 
+          TimeEnd = GetCurrentTime()
+          TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
+   
+          If Kill_Attempts = 1 Then 
         
-              TimeEnd = GetCurrentTime()
-              TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
-              sMessage = "Connection lost ... Killing " & chk.Text & " ... number of attempts = " & Str$(Kill_Attempts) & " ... time exposed = " & Str$(TimeExposed) & " seconds " & GetTime() 
-              WriteToLogFile("Append", sMessage)
-         
-             If chk_kill = "" Then
+            sMessage = "Connection lost ... Killing " & chk.Text & " ... number of attempts = " & Str$(Kill_Attempts) & " ... time exposed = " & Str$(TimeExposed) & " seconds " & GetTime() 
+            WriteToLogFile("Append", sMessage)
+    
+          Else If chk_kill = "" Then
                
-              Apps_Killed = True
-              Break
+            sMessage = "Connection lost ... Killed " & chk.Text & " .... number of attempts = " & Str$(Kill_Attempts) & " ... time exposed = " & Str$(TimeExposed) & " seconds " & GetTime() 
+            WriteToLogFile("Append", sMessage)
+            Apps_Killed = True
+            Break
               
-             Endif
+          Else If Kill_Attempts = 4 Then
+          
+            sMessage = "Connection lost ... Couldn't Kill " & chk.Text & " ... number of attempts = 4 ... time exposed = " & Str$(TimeExposed) & " seconds " & GetTime()
+            WriteToLogFile("Append", sMessage)
               
-            Endif
-          
-            If Kill_Attempts = 4 Then
-          
-              TimeEnd = GetCurrentTime()
-              TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
-              sMessage = "Connection lost ... Couldn't Kill Application(s) ... number of attempts = 4" & " ... time exposed = " & Str$(TimeExposed) & " seconds " & GetTime()
-              WriteToLogFile("Append", sMessage)
-          
-            Endif
-            
-          Else
-            
-             Apps_Killed = True
-             Break
-            
           Endif
-             
+              
        Next
      Endif
   Next
