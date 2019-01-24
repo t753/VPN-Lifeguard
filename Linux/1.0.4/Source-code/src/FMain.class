@@ -390,17 +390,14 @@ Private Sub KillApplis()
           
           Shell "killall " & chk.Text
             
+          Sleep 0.05 's Give a little time to kill application
+            
           Shell "pgrep " & chk.Text To chk_kill
           
           TimeEnd = GetCurrentTime()
           TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
-   
-          If Kill_Attempts = 1 Then 
         
-            sMessage = "Connection lost ... Killing " & chk.Text & " ... number of attempts = " & Str$(Kill_Attempts) & " ... time exposed = " & Str$(TimeExposed) & " seconds " & GetTime() 
-            WriteToLogFile("Append", sMessage)
-    
-          Else If chk_kill = "" Then
+          If chk_kill = "" Then
                
             sMessage = "Connection lost ... Killed " & chk.Text & " .... number of attempts = " & Str$(Kill_Attempts) & " ... time exposed = " & Str$(TimeExposed) & " seconds " & GetTime() 
             WriteToLogFile("Append", sMessage)
