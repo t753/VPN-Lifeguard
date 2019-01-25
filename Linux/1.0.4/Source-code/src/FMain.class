@@ -349,17 +349,14 @@ End
 Private Sub KillApplis()
 
   ' The log file entries for this procedure can be used primarily to track if you have a process
-  ' that can't be killed, like sometimes what happens with qbittorrent. If you check the log file
-  ' often you might see entries that the Appication(s) couldn't be killed. Then you can quit VPN Ligeguard
-  ' and try to kill the process manually using the terminal, e.g. 'pkill qbittorrent' or 'killall qbittorrent'.
-  ' Then if you can't kill the process usually you have to restart the OS. You can check if a process is still
-  ' active with, e.g., 'pgrep qbittorrent'. If if lists a number(s), the process is still active.
+  ' that can't be killed. If you check the log file often you might see entries that the Appication(s) couldn't
+  ' be killed. Then you can Quit VPN Ligeguard and try to kill the process manually using the terminal,
   
-  ' If torrenting it is recommded to use a torrent application such as qbittorrent that will let you bind
-  ' the network interface to the vpn connection. In qbittorrent go to Tools | Preferences | Advanced | Network Interface
-  ' and select your vpn connection to bind to, usually "tun0". They way when the vpn connection is lost,
-  ' the application will not tranfer any information and your real ip address should not be registered in
-  ' connected torrent clients.
+  ' e.g. 'pkill appname' or 'killall appname'.
+  
+  ' Then if you can't kill the process usually you have to restart the OS. You can check if a process is still
+  ' active with, e.g., 'pgrep appname'. If if lists a number(s), the process is still active.
+ 
 
   Dim chk As Object, k As Byte
   Dim chk_kill As String
