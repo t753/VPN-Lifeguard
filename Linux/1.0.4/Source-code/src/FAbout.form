@@ -1,52 +1,29 @@
 # Gambas Form File 3.0
 
 { Form Form
-  MoveScaled(0,0,66,19)
-  Text = ("VPN Lifeguard for Linux")
+  MoveScaled(0,0,35,37)
   Resizable = False
-  { timerReload #Timer
-    Delay = 15000
+  { cmdWebSite Button
+    MoveScaled(1,32,16,4)
+    Text = ("Web site")
   }
-  { cmdQuit Button
-    MoveScaled(49,11,16,4)
-    Text = ("Disconnect / Quit")
+  { cmdOK Button
+    MoveScaled(18,32,16,4)
+    Text = ("OK")
   }
-  { lblStatusBar Label
-    MoveScaled(0,16,66,3)
-    Background = Color.Gray
-    Foreground = Color.White
+  { txtAbout TextLabel
+    MoveScaled(1,11,33,20)
+    Background = Color.White
+    Alignment = Align.TopLeft
     Border = Border.Raised
   }
-  { Frame2 Frame
-    MoveScaled(1,0,64,10)
-    Text = ("Applications managed")
-    { chkSofts1 CheckBox
-      MoveScaled(3,3,24,3)
-      Tag = "chkApplis"
-    }
-    { chkSofts2 CheckBox
-      MoveScaled(35,3,24,3)
-      Tag = "chkApplis"
-    }
-    { chkSofts3 CheckBox
-      MoveScaled(3,6,24,3)
-      Tag = "chkApplis"
-    }
-    { chkSofts4 CheckBox
-      MoveScaled(35,6,24,3)
-      Tag = "chkApplis"
-    }
+  { lblAppVersion Label
+    MoveScaled(1,1,33,3)
   }
-  { cmdConfig Button
-    MoveScaled(27,11,16,4)
-    Text = ("Config")
+  { lblAuthor Label
+    MoveScaled(1,4,33,6)
   }
-  { cmdAbout Button
-    MoveScaled(44,11,4,4)
-    Text = ("?")
-  }
-  { ConnectVPN Button
-    MoveScaled(1,11,24,4)
+}
     Text = ("Connect VPN")
   }
 }
