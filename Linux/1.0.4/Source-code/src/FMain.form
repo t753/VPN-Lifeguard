@@ -1,18 +1,15 @@
 # Gambas Form File 3.0
 
 { Form Form
-  MoveScaled(0,0,66,19)
+  MoveScaled(0,0,66,36)
   Text = ("VPN Lifeguard for Linux")
   Resizable = False
-  { timerReload #Timer
-    Delay = 15000
-  }
   { cmdQuit Button
     MoveScaled(49,11,16,4)
     Text = ("Disconnect / Quit")
   }
   { lblStatusBar Label
-    MoveScaled(0,16,66,3)
+    MoveScaled(0,32,66,3)
     Background = Color.Gray
     Foreground = Color.White
     Border = Border.Raised
@@ -48,5 +45,15 @@
   { ConnectVPN Button
     MoveScaled(1,11,24,4)
     Text = ("Connect VPN")
+  }
+  { VPN_Names ListBox
+    MoveScaled(1,20,63,10)
+  }
+  { timerReload #Timer
+    Delay = 15000
+  }
+  { Label1 Label
+    MoveScaled(2,16,60,3)
+    Text = ("Select a VPN from the following list and click Connect VPN")
   }
 }
