@@ -278,7 +278,7 @@ GetConnection:
           
           sVPNname = VPN_Connections[i, 1]
           
-          Message("sVPNname = " & sVPNname & " VPN_Connections[i, 1] = " & VPN_Connections[i, 1])
+          'Message("sVPNname = " & sVPNname & " VPN_Connections[i, 1] = " & VPN_Connections[i, 1])
           
           sVPNnameCurrent = sVPNname
           
