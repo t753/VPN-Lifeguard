@@ -6,4 +6,6 @@ and just run it.
 
 Or you can just copy VPNLifeguard2.gambas to where you want and jsut run it. The gambas dependecy must be installed to run it:
 
-
+sudo add-apt-repository ppa:gambas-team/gambas3  
+sudo apt-get update
+sudo apt-get install gambas3
