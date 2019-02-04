@@ -3,3 +3,7 @@ Rename folder "src" to ".src"
 You can load the project into Gambas3, make the edits (not necessary in this repository),
 and then make an executable (VPNLifeguard.gambas). You can then copy and paste the executable to the desktop,
 and just run it.
+
+Or you can just copy VPNLifeguard2.gambas to where you want and jsut run it. The gambas dependecy must be installed to run it:
+
+
