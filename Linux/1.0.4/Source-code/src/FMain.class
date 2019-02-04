@@ -1,0 +1,860 @@
+' Gambas class file
+
+Private sVPNuuid As String ' ID of the VPN working connection
+Private sVPNname As String ' Name of VPN working connection
+
+Private sVPNuuidSettings As String ' ID of the VPN settings connection
+Private sVPNnameSettings As String ' Name of VPN settings connection
+
+Private sVPNuuidCurrent As String ' ID of the VPN current connection
+Private sVPNnameCurrent As String ' Name of VPN current connection
+
+Private sApplis As String ' Name of the application in process
+Private sNumberApplis As String ' Number of applications
+
+Private bFlag As Boolean ' Flag of connection after disconnection
+
+Public Apps_Killed As Boolean ' flag that apps have been killed
+Public ChangeVPN As Boolean = False ' flag to set true when VPN connection settings are being changed
+Public VPN_Found As Boolean = False ' flag to set true when active VPN connection found
+Public CheckUseSettingsVPN As Boolean = True ' flag whther to prompt for change connection to settings
+
+Public GetConnection As Boolean = False ' flag that vpn active connection method is in progress
+Public Disconnections As Integer = 0 ' count of succesive disconnections
+'Public IP_Address As String
+Public VPN_Connections[100, 3] As String ' 2d array holding all possible vpn names and uuids 
+Public AppsInit As Boolean = True ' flag whether to print monitored apps started log entry
+Public ActiveVPNConnectionFound As Boolean ' flag that active vpn connection was found
+'Public timerCheckVPN_totalTime As Integer = 0 ' tracks total time for timerReload_Timer
+
+Public pr As Process
+
+Public Sub Form_Open()
+  
+  Dim Initialize As String = "Log File initialized " '& Now
+  
+  ' Load vpn list to main window
+  LoadVPN_Data()
+  
+  lblStatusBar.Text = "Disconnected"
+  
+  cmdAbout.SetFocus
+  
+  ' Read settings and set checkbox applications
+  ReadSettings
+  
+  ' set monitoring on vpn connection
+  pr = Shell "dbus-monitor --system type='signal',interface='org.freedesktop.NetworkManager.VPN.Connection',member='VpnStateChanged'" For Read As "procDBusMonitor"
+  
+  ' enable timer
+  timerReload.Delay = 1000 ' 1 second
+  timerReload.Enabled = True
+  
+  lblStatusBar.Text = "Connection..."
+  
+  ' following line used to add current ip address to log entry
+  'Shell "curl ifconfig.me" To IP_Address
+  
+  Initialize &= GetTime()  
+  'Initialize &= " IP Address = " & IP_Address & " " & GetTime()  
+  WriteToLogFile("Initialize", Initialize)
+  
+  LoadVPN_Data()
+  
+End
+
+Public Function GetTime() As String
+  
+  Dim date_time As String
+  
+  Shell "date +'%Y-%m-%d %I:%M:%S'" To date_time
+  
+  Return date_time
+  
+End
+
+Public Sub cmdConfig_Click()
+  
+  Dim iApplis As Byte
+  
+  If Message.Question("Do you want to modify the list of applications to manage ?", "Yes", "No") = 1 Then
+    
+  ask:
+    sNumberApplis = InputBox("How many applications to manage ?", "Type a number")
+    
+    ' check format value
+    
+    If IsNumber(sNumberApplis) Then
+      
+      Settings["Applications to manage/N"] = CByte(sNumberApplis)
+      
+      For iApplis = 1 To 6
+        
+        If iApplis <= CByte(sNumberApplis) Then
+          
+          sApplis = InputBox("What is the name of the #" & iApplis & " application to manage ?" & Chr$(10) & " For example : transmission or firefox", "Type a name of application")
+          
+        Else
+          
+          sApplis = ""
+          
+        Endif ' Number applis
+        
+        Settings["Applications to manage/Appli #" & iApplis] = sApplis
+        
+      Next ' next checkbox / application
+      
+      ReadSettings ' and set checkbox
+      
+    Else
+      Message("Please, type a number")
+      Goto ask
+    Endif
+    
+  Endif ' Prompt yes/no
+  
+  Store_VPN()
+  
+  Settings.Save
+  
+  'CreateVPN_List_Files()
+  
+End
+
+Public Sub ConnectVPN_Click()
+  
+  ' Called when user clicks 'Connect VPN' on main window
+  
+  ' wait for current GetActiveVpnConnection() operation to finish
+  While GetConnection = True
+    Sleep 0.010
+  Wend
+  
+  GetActiveVpnConnection("Init")
+  
+End
+
+Public Sub GetActiveVpnConnection(sMode As String)
+
+  ' sMode used in the foloowing procedures:
+  
+  ' sMode = 'Config' : used in LoadVPN_Data() : to save all possible vpn connections to files to load list to main window (in ReadVPN_Data() procedure)
+  ' sMode = 'Init' : used in ConnectVPN_Click() : to connect vpn from list on main window
+  ' sMode = 'Check' : used in timerReload_Timer() : to check active vpn connections
+  
+  Dim sVPNuuidLoop As String ' ID of the VPN loop connection
+  Dim sVPNnameLoop As String ' Name of VPN loop connection
+  Dim sRet As String
+  Dim sVPNnameLen As Integer
+  Dim sVPNuuidLen As Integer
+  Dim ActiveLen As Integer
+  
+  Dim FirstColonPos As Integer
+  Dim SecondColonPos As Integer
+  Dim NewLinePos As Integer
+  Dim Line_Begin As Integer
+  Dim ActivePos As Integer
+  Dim ctr As Integer 
+  Dim ActiveState As String
+  ' Dim ConnectionTries As Integer = 0
+  Dim sOutput_Names As String = ""
+  Dim sOutput_UUIDs As String = ""
+  Dim Folder As String = "~/.vpnlifeguard"
+  Dim FileName1 As String = Folder & "/VPN_names.txt"
+  Dim FileName2 As String = Folder & "/VPN_uuids.txt"
+  Dim i As Integer
+  Dim VPN_Loop_Found As Boolean
+  Dim VPN_Settings_Used As Boolean
+  
+  'flag that current method is in progress
+  GetConnection = True
+
+  sVPNnameSettings = Settings["VPN Connection/Name"]
+  sVPNuuidSettings = Settings["VPN Connection/UUID"] 
+  
+  ActiveVPNConnectionFound = False
+  VPN_Loop_Found = False
+  VPN_Settings_Used = False
+  VPN_Found = False
+  
+  ctr = 0
+  
+  ' get informations on connection to get name and vpn ID
+  Shell "nmcli -t -f TYPE,NAME,UUID,ACTIVE c | grep vpn" To sRet
+  
+  Line_Begin = 0
+  
+  ' Loop through all vpn connections to find active vpn connections
+  While sVPNnameLoop <> "vpn"
+    
+    FirstColonPos = InStr(sRet, ":", Line_Begin, 1)
+    SecondColonPos = InStr(sRet, ":", FirstColonPos + 1, 1)
+    ActivePos = InStr(sRet, ":", SecondColonPos + 1, 1)
+    NewLinePos = InStr(sRet, Chr(10), ActivePos + 1, 1)
+    
+    sVPNnameLen = SecondColonPos - FirstColonPos - 1
+    sVPNnameLoop = Mid(sRet, FirstColonPos + 1, sVPNnameLen)
+    
+    sVPNuuidLen = ActivePos - SecondColonPos - 1
+    sVPNuuidLoop = Mid(sRet, SecondColonPos + 1, sVPNuuidLen)
+    
+    ActiveLen = NewLinePos - ActivePos - 1
+    ActiveState = Mid(sRet, ActivePos + 1, ActiveLen)
+    
+    Line_Begin = NewLinePos + 1
+    
+    ' Only assign array values if saving vpn connections to files
+    If sVPNnameLoop <> "vpn" And sMode = "Config" Then
+      
+      VPN_Connections[ctr, 1] = sVPNnameLoop
+      VPN_Connections[ctr, 2] = sVPNuuidLoop
+      
+    Endif
+    
+    ' Used for Connect VPN button (for ConnectVPN_Click())
+    If sMode = "Init" And VPN_Loop_Found = False Then
+      
+      If ActiveState = "yes" Then
+        
+        If Message.Question("Do you want keep the following VPN Connection?" & Chr(10) & "VPN Connection = " & sVPNnameLoop, " Yes ", " No ") = 1 Then  
+  
+          sVPNname = sVPNnameLoop
+          sVPNuuid = sVPNuuidLoop
+          sVPNnameCurrent = sVPNname
+          sVPNuuidCurrent = sVPNuuid
+          VPN_Loop_Found = True
+          Break
+          
+        Else
+          ' So to have only 1 active vpn connection
+          Shell "nmcli con down uuid " & sVPNuuidLoop
+          Wait 1 's
+          
+        Endif
+      Endif
+    Endif
+    
+    ' used for timerReload_Timer() : to check active vpn connections
+    If sMode = "Check" And VPN_Loop_Found = False Then 
+      
+      If ActiveState = "yes" Then
+        
+        If sVPNname = sVPNnameLoop Then
+          
+          ActiveVPNConnectionFound = True
+          VPN_Loop_Found = True
+          Break
+          
+        Else
+          
+          Message("You have more than 1 VPN connection .. do you want this?")
+          
+        Endif
+      Endif
+    Endif
+    
+    ctr += 1
+    
+  Wend
+  
+  ' Save all vpn connections to file for loading to main window (for LoadVPN_Data())
+  If sMode = "Config" Then
+    
+    For i = 0 To ctr - 1
+      
+      If i < ctr - 1 Then
+ 
+        sOutput_Names &= (VPN_Connections[i, 1] & "\n")
+        sOutput_UUIDs &= (VPN_Connections[i, 2] & "\n")
+      
+      Else
+        
+        sOutput_Names &= (VPN_Connections[i, 1])
+        sOutput_UUIDs &= (VPN_Connections[i, 2])
+        
+      Endif
+    Next
+    
+    File.Save(FileName1, sOutput_Names)
+    File.Save(FileName2, sOutput_UUIDs)
+    
+  Endif
+  
+  ' Get settings connection if chosen or from list om main window (if above loop connection not selected)
+  ' - for ConnectVPN_Click()
+  If ChangeVPN = False And VPN_Loop_Found = False And sMode = "Init" Then 
+    
+    ' Get settings connection if chosen
+    If CheckUseSettingsVPN = True
+    
+      If sVPNname <> sVPNnameSettings Then
+        
+        If sVPNname <> "" Then
+          Store_VPN()
+        Endif
+        
+        If Message.Question("Would you like to connect to your VPN settings connection?" & Chr(10) & "VPN current Connection = " & sVPNname & Chr(10) & "VPN settings Connection = " & sVPNnameSettings, " Yes ", " No ") = 1 Then   
+          
+          If VPN_Found = True Then
+            Shell "nmcli con down uuid " & sVPNuuid
+          Endif
+          VPN_Settings_Used = True
+          sVPNname = sVPNnameSettings
+          sVPNnameCurrent = sVPNname
+          sVPNuuid = sVPNuuidSettings
+          Shell "nmcli con up uuid " & sVPNuuid
+          'VPN_Found = True
+          'Wait 2
+        Endif
+        
+        If Message.Question("Click Yes not to see the settings prompt any more this session ...", "Yes ", " No ") = 1 Then   
+          CheckUseSettingsVPN = False
+        Endif
+      Endif
+    Endif
+    
+    ' Get connection from list on main window if settings not used
+    If VPN_Settings_Used = False Then
+      
+      For i = 0 To VPN_Names.Count - 1
+        
+        If VPN_Names[i].Selected Then
+          
+          If sVPNname <> VPN_Names[i].Text Then
+            
+            If sVPNname <> ""
+              Shell "nmcli con down uuid " & sVPNuuid
+            Endif
+           
+            sVPNname = VPN_Connections[i, 1]
+            sVPNnameCurrent = sVPNname
+            sVPNuuid = VPN_Connections[i, 2]
+            sVPNuuidCurrent = sVPNuuid
+            
+            Shell "nmcli con up uuid " & sVPNuuid
+           
+          Endif
+        Endif
+      Next 
+    Endif
+    
+  Endif
+  
+  If sMode <> "Check" Then
+    bFlag = True
+  Endif
+  
+  GetConnection = False
+  
+End
+
+Public Sub ReadVPN_Data()
+  
+  ' This method used in LoadVPN_Data()
+  ' Used to read all vpn possible connections to diplay list on main window
+  
+  Dim Folder As String = "~/.vpnlifeguard"
+  Dim FileName1 As String = Folder & "/VPN_names.txt"
+  Dim FileName2 As String = Folder & "/VPN_uuids.txt"
+  Dim hFile1 As File
+  Dim hFile2 As File
+  Dim sLine As String
+  Dim ctr As Integer
+  
+   If Not Exist(FileName1) Or Not Exist(FileName2) Then
+     Message("VPN Files missing ... quit and restart application")
+   Endif
+  
+  VPN_Names.List = Split(File.Load(FileName1), "\n")
+   
+  hFile1 = Open FileName1 For Read
+  ctr = 0
+  
+  While Not Eof(hFile1)
+    
+    Line Input #hFile1, sLine
+    VPN_Connections[ctr, 1] = sLine
+    ctr += 1
+    
+  Wend
+  
+  hFile2 = Open FileName2 For Read
+  ctr = 0
+  
+  While Not Eof(hFile2)
+    
+    Line Input #hFile2, sLine
+    VPN_Connections[ctr, 2] = sLine
+    ctr += 1
+    
+  Wend
+  
+End
+
+Public Sub LoadVPN_Data()
+  
+  ' Used in method Form_Open() to load vpn list to main window
+  
+  Dim Folder As String = "~/.vpnlifeguard"
+  Dim FileName1 As String = Folder & "/VPN_names.txt"
+  Dim FileName2 As String = Folder & "/VPN_uuids.txt"
+  
+  If Not Exist(FileName1) Or Not Exist(FileName2) Then
+    
+    ' wait for current GetActiveVpnConnection() operation to finish
+    While GetConnection = True
+      Sleep 0.010
+    Wend
+    
+    GetActiveVpnConnection("Config")
+    
+  Endif
+  
+  ReadVPN_Data()
+  
+End
+
+Public Sub cmdAbout_Click()
+  ' Show the about form
+  
+  FAbout.ShowModal
+  
+End
+
+Private Sub Store_VPN()
+  
+  ' This procedure used by:
+  
+  ' - GetActiveVpnConnection() : to store current vpn connections to settings 
+  ' - cmdConfig_Click() : to store current vpn connections to settings 
+  
+  ChangeVPN = True
+  
+  If Message.Question("Do you want add the current VPN Connection to the settings?" & Chr(10) & "VPN current name= " & sVPNnameCurrent & Chr(10) & "VPN current settings = " & sVPNnameSettings & Chr(10) & "If settings is blank, choose Yes.", " Yes ", " No ") = 1 Then  
+    
+    If VPN_Found = True Then
+      
+      Settings["VPN Connection/Name"] = sVPNnameCurrent
+      Settings["VPN Connection/UUID"] = sVPNuuidCurrent
+      Settings.Save
+      Sleep 2
+      sVPNnameSettings = Settings["VPN Connection/Name"]
+      sVPNuuidSettings = Settings["VPN Connection/UUID"] 
+      
+    Endif
+    
+  Endif ' Prompt yes/no
+  
+  ChangeVPN = False
+  
+End
+
+Private Sub ReadSettings()
+  ' Read settings and set checkbox applications
+  
+  Dim chk As Object, k As Byte
+  
+  ' Get the number of applications to manage
+  sNumberApplis = Settings["Applications to manage/N", 0]
+  
+  k = 1 ' initialize
+  
+  ' For each checkbox of applications
+  For Each chk In FMain.Controls
+    
+    ' If control is a checkbox
+    If chk.Tag = "chkApplis" Then
+      
+      ' Get settings of applications'name
+      sApplis = Settings["Applications to manage/Appli #" & k, ""]
+      
+      If k <= CByte(sNumberApplis) Then
+        ' Appli to manage
+        chk.Text = sApplis
+        chk.visible = True
+        chk.value = True
+      Else
+        ' No application
+        chk.Text = ""
+        chk.visible = False
+        chk.value = False
+      Endif
+      
+      Inc k
+      
+    Endif
+  Next
+  
+End
+
+Public Sub CheckConnections()
+  
+  ' Used by timerReload_Timer() to get status of active vpn connections
+  
+  Dim sMessage As String
+ 
+  ' wait for current GetActiveVpnConnection() operation to finish
+  While GetConnection = True
+    Sleep 0.010
+  Wend
+ 
+ ' Sets ActiveVPNConnectionFound
+  GetActiveVpnConnection("Check")
+  
+  If ActiveVPNConnectionFound = False Then
+    sMessage = "VPN Connection lost ... probably internet connection lost ... " & GetTime()
+  Else
+    sMessage = "VPN Connection good ... internet connection and vpn connection good ... " & GetTime()
+  Endif
+  
+  WriteToLogFile("Append", sMessage)
+   
+End
+
+
+Public Sub timerReload_Timer()
+  
+  Dim chk As Object
+  Dim sRet As String
+  Dim sCommand As String
+  Dim sEntry As String = "VPN Connection re-established and Application(s) restarted ... " '& Now
+  Dim sCouldnt_Kill As String = "VPN Connection re-established and Application(s) already running ... " 
+  Dim sApp As String = ""
+  Dim sApplications_Init As String = "Monitored application started on initialization ... "
+  Dim sMessage As String
+  Dim iConnectionTries As Integer
+  
+  ' Timer to check state of VPN connection
+  ' if connected = ok, nothing to do
+  ' if disconnected = connect and reload applis
+  
+  timerReload.Delay = 10000 ' 10 seconds
+  
+  ' timerCheckVPN_totalTime += 10
+  ' 
+  ' If timerCheckVPN_totalTime % 600 = 0 Then
+  ' ' Check for active vpn connection
+  '   CheckConnections()
+  ' Endif
+  
+  ' get status of all connections
+  sCommand = "nmcli con show --active | grep " & sVPNname
+  Shell sCommand To sRet
+  
+  ' check state of vpn
+  If InStr(sRet, sVPNname) Then
+    
+    'Shell "curl ifconfig.me" To IP_Address
+    
+    ' connected = ok
+    'lblStatusBar.Text = "Connected + monitoring"
+    lblStatusBar.Text = "Connected + monitoring : VPN = " & sVPNname
+    
+    If bFlag = True Then
+      ' after reconnection, reload applis
+      bFlag = False
+      
+      'Shell "notify-send --expire-time=1000 --hint=int:transient:1 'VPN connected'"
+      NotifySend("VPN connected", "")
+      lblStatusBar.Text = "Connected and reloading applications..."
+      
+      For Each chk In FMain.Controls
+        ' each checkbox
+        If (chk.Tag = "chkApplis") And If (chk.Text <> "") And If (chk.value = True) Then
+          
+          ' load applications
+          sApp = chk.Text
+          
+          If AppsInit = True Then
+              sMessage = sApplications_Init & sApp & " ... " & GetTime() 
+          Else If Apps_Killed = True Then
+            sMessage = sEntry & sApp & " ... " & GetTime() 
+          Else
+            sMessage = sCouldnt_Kill & sApp & " ... " & GetTime() 
+          Endif
+          
+          Shell "exec " & chk.Text
+          WriteToLogFile("Append", sMessage)
+          
+        Endif
+        
+      Next
+      
+      If AppsInit = True Then
+        AppsInit = False
+      Endif
+      
+      lblStatusBar.Text = "Connected + monitoring : VPN = " & sVPNname
+     
+    Endif
+    
+  Else
+    
+    ' disconnected then reconnection   
+    
+    Wait 1 's
+    
+    iConnectionTries = 1
+  
+  Connect:
+  
+    ' re-establish vpn connection
+    Shell "nmcli con up uuid " & sVPNuuid
+     
+    Wait 2
+    
+    iConnectionTries += 1
+     
+    ' Check for active vpn connection
+    CheckConnections()
+    
+    ' if vpn not connected after 3 tries probably lost internet connection
+    ' so quit VPN Lifeguard
+    If ActiveVPNConnectionFound = False And sVPNuuid <> "" Then
+      
+      If iConnectionTries <= 3 Then
+        
+        Print "ConnectionTries = ", iConnectionTries
+        Goto Connect
+        
+      Endif
+      
+      sMessage = "VPN connection lost .. probably lost internet connection .. quttiing VPN Lifegaurd ... " & GetTime() 
+      WriteToLogFile("Append", sMessage)
+      sCommand = "notify-send " & "'" & sMessage & "'" ""
+      Shell sCommand
+      cmdQuit_Click()
+      
+    Else
+      
+      ' flag that the vpn will be reconnected to restart monitored applications
+      bFlag = True
+      
+    Endif
+ 
+  Endif
+  
+End
+
+Public Sub NotifySend(sMessage_1 As String, sMessage_2 As String)
+  
+  Dim Command As String
+  
+  Command = "notify-send --expire-time=1000 --hint=int:transient:1 " & "'" & sMessage_1 & "'" & " " & "'" & sMessage_2 & "'"
+  Shell Command
+  
+End
+
+Public Sub WriteToLogFile(sMode As String, sMessage As String)
+  
+  Dim Folder As String = "~/.vpnlifeguard"
+  Dim FileName As String = Folder & "/log.txt"
+  Dim FileSize As Integer
+  
+  If Not Exist(Folder) Then
+    
+    Mkdir Folder
+    
+  Endif
+  
+  If sMode = "Initialize" Then 
+    
+    If Not Exist(FileName) Then
+      
+      WriteToFile(FileName, sMessage)
+      
+    Else
+      
+      With Stat(FileName)
+        FileSize = Round(.Size / 1024)
+      End With
+      
+      If FileSize > 50 Then
+        
+        Shell "rm " & FileName
+        Wait 1 's
+        WriteToFile(FileName, sMessage)
+        
+      Else
+        
+        AppendToFile(FileName, sMessage)
+        
+      Endif
+      
+    Endif
+    
+  Else 
+    
+    AppendToFile(FileName, sMessage)
+    
+  Endif
+  
+End
+
+Public Sub WriteToFile(FileName As String, sMessage As String)
+  
+  Dim hFile As File
+  
+  hFile = Open FileName For Create
+  sMessage = sMessage & Chr(10)
+  Write #hFile, sMessage
+  
+End
+
+Public Sub AppendToFile(FileName As String, sMessage As String)
+  
+  Dim hFile As File
+  
+  hFile = Open FileName For Append
+  sMessage = sMessage & Chr(10)
+  Write #hFile, sMessage
+  
+End
+
+Public Sub cmdQuit_Click()
+  
+  FMain.Close
+  
+End
+
+Public Sub Form_Close()
+  
+  NotifySend("Kill applications...", "")
+  
+  KillApplis
+  
+  NotifySend("Disconnection...", "")
+  
+  Wait 1
+  
+  ' disconnect vpn
+  Shell "nmcli con down uuid " & sVPNuuid
+  
+  NotifySend("Disconnected", "")
+  
+  ' kill the monitoring DBus
+  Flush
+  pr.Close
+  pr.Kill
+  
+End
+
+Public Sub procDBusMonitor_Read()
+  
+  Dim sLine As String
+  
+  sLine = Read #Last, -256
+  
+  'If VPN_Found = True
+  
+  If InStr(sLine, "uint32 3") Then
+    ' connected
+    
+    Print "connected", Time
+    VPN_Found = True
+    bFlag = True
+    Disconnections = 0
+    
+  Endif
+  
+  If InStr(sLine, "uint32 6") Or InStr(sLine, "uint32 7") Then
+    ' disconnected
+    
+    Disconnections += 1
+    VPN_Found = False
+    KillApplis
+    Print "disconnected ", Time, Str$(Disconnections)
+    NotifySend("VPN disconnected", "Attempted to Kill Applications...")
+    lblStatusBar.Text = "Connection..."
+    
+  Endif
+  
+  'Endif
+  
+End
+
+Private Sub KillApplis()
+  
+  ' The log file entries for this procedure can be used primarily to track if you have a process
+  ' that can't be killed. If you check the log file often you might see entries that the Appication(s) couldn't
+  ' be killed. Then you can Quit VPN Ligeguard and try to kill the process manually using the terminal,
+  
+  ' e.g. 'pkill appname' or 'killall appname'.
+  
+  ' Then if you can't kill the process usually you have to restart the OS. You can check if a process is still
+  ' active with, e.g., 'pgrep appname'. If if lists a number(s), the process is still active.
+  
+  Dim chk As Object, k As Byte
+  Dim chk_kill As String
+  Dim sMessage As String
+  Dim Kill_Attempts As Integer = 0
+  Dim TimeExposed As Float
+  Dim TimeStart As Float
+  Dim TimeEnd As Float
+  
+  TimeStart = GetCurrentTime()
+  
+  For Each chk In FMain.Controls
+    ' each checkbox
+    If (chk.Tag = "chkApplis") And If (chk.Text <> "") And If (chk.value = True) Then
+      
+      For k = 1 To 4
+        ' close applications
+        
+        ' Originally the edit here changed the "k" to 10 from 3,
+        ' but it shouldn't take more than 3 attempts to close the application.
+        ' So I changed the "k" loop to 4. That way the loop can finish and
+        ' the vpn connection can be re-established, limiting application exposure.
+        
+        Apps_Killed = False
+        
+        Kill_Attempts += 1
+        
+        Shell "killall " & chk.Text
+        
+        'Sleep 0.05 's Give a little time to kill application
+        
+        Shell "pgrep " & chk.Text To chk_kill
+        
+        TimeEnd = GetCurrentTime()
+        TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
+        
+        If chk_kill = "" Then
+          
+          sMessage = "Connection lost ... killed " & chk.Text & " .... number of attempts = " & Str$(Kill_Attempts) & " ... time exposed = " & Str$(TimeExposed) & " seconds ... " & GetTime() 
+          WriteToLogFile("Append", sMessage)
+          Apps_Killed = True
+          Break
+          
+        Else If Kill_Attempts = 4 Then
+          
+          sMessage = "Connection lost ... couldn't kill " & chk.Text & " ... number of attempts = 4 ... time exposed = " & Str$(TimeExposed) & " seconds ... " & GetTime()
+          WriteToLogFile("Append", sMessage)
+          
+        Endif
+        
+      Next
+    Endif
+  Next
+  
+End
+
+Public Function GetCurrentTime() As Float
+  
+  Dim CurrentTime As Float
+  Dim CurrentTimeStr As String
+  
+  Shell "date +%s%3N" To CurrentTimeStr
+  CurrentTime = Val(CurrentTimeStr)
+  Return CurrentTime
+  
+End
+
+Public Function GetTimeElapsed(StartTime As Float, EndTime As Float) As Float
+  
+  Dim Elapsed As Float
+
+  Elapsed = ((EndTime - StartTime) / 1000)
+  Return Elapsed
+  
+End
