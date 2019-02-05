@@ -597,14 +597,16 @@ Public Sub timerReload_Timer()
       
       Wait 1 's
       
-      iConnectionTries = 1
+      iConnectionTries = 0
       
     Connect:
       
+      iConnectionTries += 1
+  
       ' re-establish vpn connection
       Shell "nmcli con up uuid " & sVPNuuid
       
-      Sleep 2
+      Sleep 1
       
      
       ' Check for active vpn connection
@@ -614,11 +616,10 @@ Public Sub timerReload_Timer()
       ' so quit VPN Lifeguard
       If ActiveVPNConnectionFound = False And sVPNuuid <> "" Then
         
-        If iConnectionTries <= 3 Then
+        If iConnectionTries <= 2 Then
           
           Print "ConnectionTries = ", iConnectionTries
           'Message("ConnectionTries = " & iConnectionTries)
-          iConnectionTries += 1
           
           Goto Connect
           
@@ -626,7 +627,7 @@ Public Sub timerReload_Timer()
         
         sMessage = "VPN connection lost .. probably lost internet connection .. quitting VPN Lifegaurd ... " & GetTime() 
         WriteToLogFile("Append", sMessage)
-        sCommand = "notify-send " & sMessage 
+        sCommand = "notify-send " & "'" & sMessage & "'"
         Shell sCommand
         cmdQuit_Click()
         
