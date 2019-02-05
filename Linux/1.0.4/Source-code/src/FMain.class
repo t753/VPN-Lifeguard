@@ -491,7 +491,7 @@ Public Sub CheckConnections()
   
   ' Used by timerReload_Timer() to get status of active vpn connections
   
-  'Dim sMessage As String
+  Dim sMessage As String
  
   ' wait for current GetActiveVpnConnection() operation to finish
   While GetConnection = True
@@ -501,13 +501,13 @@ Public Sub CheckConnections()
  ' Sets ActiveVPNConnectionFound
   GetActiveVpnConnection("Check")
   
-  ' If ActiveVPNConnectionFound = False Then
-  '   sMessage = "VPN Connection lost ... probably internet connection lost ... " & GetTime()
-  ' Else
-  '   sMessage = "VPN Connection good ... internet connection and vpn connection good ... " & GetTime()
-  ' Endif
-  ' 
-  ' WriteToLogFile("Append", sMessage)
+  If ActiveVPNConnectionFound = False Then
+    sMessage = "VPN Connection lost ... probably internet connection lost ... " & GetTime()
+  Else
+    sMessage = "VPN Connection good ... internet connection and vpn connection good ... " & GetTime()
+  Endif
+  
+  WriteToLogFile("Append", sMessage)
    
 End
 
@@ -541,6 +541,7 @@ Public Sub timerReload_Timer()
   sCommand = "nmcli con show --active | grep " & sVPNname
   Shell sCommand To sRet
   
+  'Message("sRet = " & sRet)
   ' check state of vpn
   If InStr(sRet, sVPNname) Then
     
@@ -592,46 +593,52 @@ Public Sub timerReload_Timer()
     
     ' disconnected then reconnection   
     
-    Wait 1 's
-    
-    iConnectionTries = 1
-  
-  Connect:
-  
-    ' re-establish vpn connection
-    Shell "nmcli con up uuid " & sVPNuuid
-     
-    Sleep 2
-    
-    iConnectionTries += 1
-     
-    ' Check for active vpn connection
-    CheckConnections()
-    
-    ' if vpn not connected after 3 tries probably lost internet connection
-    ' so quit VPN Lifeguard
-    If ActiveVPNConnectionFound = False And sVPNuuid <> "" Then
+    If sVPNname <> "" Then
       
-      If iConnectionTries <= 3 Then
+      Wait 1 's
+      
+      iConnectionTries = 1
+      
+    Connect:
+      
+      ' re-establish vpn connection
+      Shell "nmcli con up uuid " & sVPNuuid
+      
+      Sleep 2
+      
+     
+      ' Check for active vpn connection
+      CheckConnections()
+      
+      ' if vpn not connected after 3 tries probably lost internet connection
+      ' so quit VPN Lifeguard
+      If ActiveVPNConnectionFound = False And sVPNuuid <> "" Then
         
-        Print "ConnectionTries = ", iConnectionTries
-        Goto Connect
+        If iConnectionTries <= 3 Then
+          
+          Print "ConnectionTries = ", iConnectionTries
+          'Message("ConnectionTries = " & iConnectionTries)
+          iConnectionTries += 1
+          
+          Goto Connect
+          
+        Endif
+        
+        sMessage = "VPN connection lost .. probably lost internet connection .. quitting VPN Lifegaurd ... " & GetTime() 
+        WriteToLogFile("Append", sMessage)
+        sCommand = "notify-send " & sMessage 
+        Shell sCommand
+        cmdQuit_Click()
+        
+      Else
+        
+        ' flag that the vpn will be reconnected to restart monitored applications
+        bFlag = True
         
       Endif
       
-      sMessage = "VPN connection lost .. probably lost internet connection .. quttiing VPN Lifegaurd ... " & GetTime() 
-      WriteToLogFile("Append", sMessage)
-      sCommand = "notify-send " & "'" & sMessage & "'" ""
-      Shell sCommand
-      cmdQuit_Click()
-      
-    Else
-      
-      ' flag that the vpn will be reconnected to restart monitored applications
-      bFlag = True
-      
     Endif
- 
+    
   Endif
   
 End
@@ -777,7 +784,7 @@ Private Sub KillApplis()
   
   ' The log file entries for this procedure can be used primarily to track if you have a process
   ' that can't be killed. If you check the log file often you might see entries that the Appication(s) couldn't
-  ' be killed. Then you can Quit VPN Ligeguard and try to kill the process manually using the terminal,
+  ' be killed. Then you can Quit VPN Lifeguard and try to kill the process manually using the terminal,
   
   ' e.g. 'pkill appname' or 'killall appname'.
   
