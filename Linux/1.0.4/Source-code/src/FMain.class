@@ -119,6 +119,25 @@ Public Sub cmdConfig_Click()
   
   'CreateVPN_List_Files()
   
+  Load_VPNs_pswd()
+  
+End
+
+Public Sub Load_VPNs_pswd()
+  
+  ' Called from cmdConfig_Click()
+  
+  If Message.Question("Do you want to loop throught the VPNs to enter the passwords?", "Yes ", " No ") = 1 Then   
+  
+  ' wait for current GetActiveVpnConnection() operation to finish
+    While GetConnection = True
+      Sleep 0.010
+    Wend
+  
+    GetActiveVpnConnection("PSWD")
+  
+  Endif
+  
 End
 
 Public Sub ConnectVPN_Click()
@@ -147,25 +166,22 @@ Public Sub GetActiveVpnConnection(sMode As String)
   Dim sRet As String
   Dim sVPNnameLen As Integer
   Dim sVPNuuidLen As Integer
-  Dim ActiveLen As Integer
-  
+  Dim ActiveLen As Integer  
   Dim FirstColonPos As Integer
   Dim SecondColonPos As Integer
   Dim NewLinePos As Integer
   Dim Line_Begin As Integer
-  Dim ActivePos As Integer
-  Dim ctr As Integer 
+  Dim ActivePos As Integer  
+  Dim ctr As Integer  
   Dim ActiveState As String
-  ' Dim ConnectionTries As Integer = 0
-  Dim sOutput_Names As String = ""
-  Dim sOutput_UUIDs As String = ""
+  Dim sOutput_VPNS As String = ""
   Dim Folder As String = "~/.vpnlifeguard"
-  Dim FileName1 As String = Folder & "/VPN_names.txt"
-  Dim FileName2 As String = Folder & "/VPN_uuids.txt"
+  Dim FileName As String = Folder & "/VPNs_data.csv"
   Dim i As Integer
   Dim VPN_Loop_Found As Boolean
   Dim VPN_Settings_Used As Boolean
-  
+  Dim name As String
+  Dim uuid As String
   'flag that current method is in progress
   GetConnection = True
 
@@ -212,26 +228,56 @@ Public Sub GetActiveVpnConnection(sMode As String)
     Endif
     
     ' Used for Connect VPN button (for ConnectVPN_Click())
-    If sMode = "Init" And VPN_Loop_Found = False Then
+    If sMode = "Init" Then 'And VPN_Loop_Found = False Then
       
       If ActiveState = "yes" Then
         
-        If Message.Question("Do you want keep the following VPN Connection?" & Chr(10) & "VPN Connection = " & sVPNnameLoop, " Yes ", " No ") = 1 Then  
+        If Message.Question("Do you want keep the following VPN Connection? " & Chr(10) & "You should only keep 1 ..." & Chr(10) & "VPN Connection = " & sVPNnameLoop, " Yes ", " No ") = 1 Then  
   
           sVPNname = sVPNnameLoop
           sVPNuuid = sVPNuuidLoop
           sVPNnameCurrent = sVPNname
           sVPNuuidCurrent = sVPNuuid
           VPN_Loop_Found = True
-          Break
+          'Break
           
         Else
           ' So to have only 1 active vpn connection
           Shell "nmcli con down uuid " & sVPNuuidLoop
+          sVPNname = ""
+          sVPNuuid = ""
+          sVPNnameCurrent = ""
           Wait 1 's
           
         Endif
+        
+      Else If ActiveState = "no"
+        
+        Break
+        
       Endif
+    Endif
+    
+    If sMode = "PSWD" And sVPNnameLoop <> "vpn" Then
+      
+      If sVPNname <> sVPNnameLoop Then
+        
+        If Message.Question("Select Yes to connect the next vpn and enter the password ..." & Chr(10) & Chr(10) & "vpn = " & sVPNnameLoop, "Yes ", " No ") = 1 Then   
+          
+          Shell "nmcli con up uuid " & sVPNuuidLoop
+          
+          Message("Press OK to disconnect the current connected vpn ...")
+          
+          Shell "nmcli con down uuid " & sVPNuuidLoop
+          
+        Endif
+        
+        If Message.Question("Select Yes to exit this loop ... ", "Yes ", " No ") = 1 Then   
+          
+          Break
+          
+        Endif  
+      Endif       
     Endif
     
     ' used for timerReload_Timer() : to check active vpn connections
@@ -257,27 +303,30 @@ Public Sub GetActiveVpnConnection(sMode As String)
     
   Wend
   
+  ctr -= 2
+ 
   ' Save all vpn connections to file for loading to main window (for LoadVPN_Data())
   If sMode = "Config" Then
     
-    For i = 0 To ctr - 1
+    For i = 0 To ctr 
       
-      If i < ctr - 1 Then
+      name = VPN_Connections[i, 1]
+      uuid = VPN_Connections[i, 2]
+      
+      If i < ctr Then
  
-        sOutput_Names &= (VPN_Connections[i, 1] & "\n")
-        sOutput_UUIDs &= (VPN_Connections[i, 2] & "\n")
-      
+         sOutput_VPNS &= name & "," & uuid & "\n"
+        
       Else
-        
-        sOutput_Names &= (VPN_Connections[i, 1])
-        sOutput_UUIDs &= (VPN_Connections[i, 2])
-        
+     
+        sOutput_VPNS &= name & "," & uuid 
+       
       Endif
+      
     Next
-    
-    File.Save(FileName1, sOutput_Names)
-    File.Save(FileName2, sOutput_UUIDs)
-    
+ 
+    File.Save(FileName, sOutput_VPNs)
+   
   Endif
   
   ' Get settings connection if chosen or from list om main window (if above loop connection not selected)
@@ -340,7 +389,7 @@ Public Sub GetActiveVpnConnection(sMode As String)
     
   Endif
   
-  If sMode <> "Check" Then
+  If sMode <> "Check" And sMode <> "PSWD" Then
     bFlag = True
   Endif
   
@@ -354,40 +403,29 @@ Public Sub ReadVPN_Data()
   ' Used to read all vpn possible connections to diplay list on main window
   
   Dim Folder As String = "~/.vpnlifeguard"
-  Dim FileName1 As String = Folder & "/VPN_names.txt"
-  Dim FileName2 As String = Folder & "/VPN_uuids.txt"
-  Dim hFile1 As File
-  Dim hFile2 As File
+  Dim FileName As String = Folder & "/VPNs_data.csv"
   Dim sLine As String
-  Dim ctr As Integer
+  Dim VPN_data As String[]
+  Dim VPN_data_names As New String[]
+  Dim line_items As New String[]
+  Dim ctr As Integer = 0
   
-   If Not Exist(FileName1) Or Not Exist(FileName2) Then
-     Message("VPN Files missing ... quit and restart application")
+   If Not Exist(FileName) Then ' Or Not Exist(FileName2) Then
+     Message("VPN File missing ... quit and restart application")
    Endif
   
-  VPN_Names.List = Split(File.Load(FileName1), "\n")
-   
-  hFile1 = Open FileName1 For Read
-  ctr = 0
-  
-  While Not Eof(hFile1)
+  VPN_data = Split(File.Load(FileName), "\n")
+ 
+  For Each sLine In VPN_data
     
-    Line Input #hFile1, sLine
-    VPN_Connections[ctr, 1] = sLine
+    line_items = Split(sLine, ",")
+    VPN_data_names.Add(line_items[0])
+    VPN_Connections[ctr, 1] = line_items[0]
+    VPN_Connections[ctr, 2] = line_items[1]
     ctr += 1
-    
-  Wend
+  Next
   
-  hFile2 = Open FileName2 For Read
-  ctr = 0
-  
-  While Not Eof(hFile2)
-    
-    Line Input #hFile2, sLine
-    VPN_Connections[ctr, 2] = sLine
-    ctr += 1
-    
-  Wend
+  VPN_Names.List = VPN_data_names
   
 End
 
@@ -396,10 +434,9 @@ Public Sub LoadVPN_Data()
   ' Used in method Form_Open() to load vpn list to main window
   
   Dim Folder As String = "~/.vpnlifeguard"
-  Dim FileName1 As String = Folder & "/VPN_names.txt"
-  Dim FileName2 As String = Folder & "/VPN_uuids.txt"
+  Dim FileName As String = Folder & "/VPNs_data.csv"
   
-  If Not Exist(FileName1) Or Not Exist(FileName2) Then
+  If Not Exist(FileName) Then ' Or Not Exist(FileName2) Then
     
     ' wait for current GetActiveVpnConnection() operation to finish
     While GetConnection = True
