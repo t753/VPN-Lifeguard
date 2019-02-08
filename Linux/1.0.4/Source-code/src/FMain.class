@@ -242,9 +242,9 @@ Public Sub GetActiveVpnConnection(sMode As String)
         Else
           ' So to have only 1 active vpn connection
           Shell "nmcli con down uuid " & sVPNuuidLoop
-          sVPNname = ""
-          sVPNuuid = ""
-          sVPNnameCurrent = ""
+          'sVPNname = ""
+          'sVPNuuid = ""
+          'sVPNnameCurrent = ""
           Wait 1 's
           
         Endif
