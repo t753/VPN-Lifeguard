@@ -12,8 +12,7 @@ This will allow having a VPN list on the main window.
 
 # VPN Lifeguard for Linux
 
-![screenshot Linux](https://cloud.githubusercontent.com/assets/24923693/21937000/b2242e88-d9b5-11e6-94d7-bca9ef2399b4.png)
-
+![screenshot Linux](/VPN_Lifeguard_for_Linux.png)
 
 ## Install
 
