@@ -240,11 +240,19 @@ Public Sub GetActiveVpnConnection(sMode As String)
           'Break
           
         Else
+   
           ' So to have only 1 active vpn connection
           Shell "nmcli con down uuid " & sVPNuuidLoop
-          'sVPNname = ""
-          'sVPNuuid = ""
-          'sVPNnameCurrent = ""
+          
+          If VPN_Loop_Found = False Then
+              
+            sVPNname = ""
+            sVPNuuid = ""
+            sVPNnameCurrent = ""
+            sVPNuuidCurrent = ""
+          
+          Endif
+   
           Wait 1 's
           
         Endif
@@ -408,9 +416,9 @@ Public Sub ReadVPN_Data()
   Dim line_items As New String[]
   Dim ctr As Integer = 0
   
-   If Not Exist(FileName) Then ' Or Not Exist(FileName2) Then
-     Message("VPN File missing ... quit and restart application")
-   Endif
+  If Not Exist(FileName) Then 
+    Message("VPN File missing ... quit and restart application")
+  Endif
   
   VPN_data = Split(File.Load(FileName), "\n")
  
