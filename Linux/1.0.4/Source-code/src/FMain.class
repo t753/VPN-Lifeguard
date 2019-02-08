@@ -59,8 +59,6 @@ Public Sub Form_Open()
   'Initialize &= " IP Address = " & IP_Address & " " & GetTime()  
   WriteToLogFile("Initialize", Initialize)
   
-  LoadVPN_Data()
-  
 End
 
 Public Function GetTime() As String
