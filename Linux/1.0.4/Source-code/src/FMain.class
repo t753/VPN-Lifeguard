@@ -33,9 +33,6 @@ Public Sub Form_Open()
   
   Dim Initialize As String = "Log File initialized " '& Now
   
-  ' Load vpn list to main window
-  LoadVPN_Data()
-  
   lblStatusBar.Text = "Disconnected"
   
   cmdAbout.SetFocus
@@ -58,6 +55,10 @@ Public Sub Form_Open()
   Initialize &= GetTime()  
   'Initialize &= " IP Address = " & IP_Address & " " & GetTime()  
   WriteToLogFile("Initialize", Initialize)
+  
+  ' Load vpn list to main window
+  LoadVPN_Data()
+ 
   
 End
 
