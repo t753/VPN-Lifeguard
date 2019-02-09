@@ -34,5 +34,5 @@ The application will connect your VPN. Then, click on the Config button in order
 
 [![download][2]][1]
 
-  [1]: https://github.com/Philippe734/VPN-Lifeguard/raw/master/Linux/1.0.4/Setup_VPNLifeguard_for_Ubuntu.deb
+  [1]: https://github.com/t753/VPN-Lifeguard/raw/master/Linux/1.0.4/Setup_VPN_Lifeguard_for_Ubuntu.deb
   [2]: https://cloud.githubusercontent.com/assets/24923693/21723900/7fdda69e-d432-11e6-8ab1-87dd79f36fe5.gif
