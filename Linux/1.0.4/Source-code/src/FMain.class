@@ -425,11 +425,18 @@ Public Sub ReadVPN_Data()
  
   For Each sLine In VPN_data
     
-    line_items = Split(sLine, ",")
-    VPN_data_names.Add(line_items[0])
-    VPN_Connections[ctr, 1] = line_items[0]
-    VPN_Connections[ctr, 2] = line_items[1]
-    ctr += 1
+    'Print "sLine = ", sLine
+    
+    If sLine <> "" Then
+      
+      line_items = Split(sLine, ",")
+      VPN_data_names.Add(line_items[0])
+      VPN_Connections[ctr, 1] = line_items[0]
+      VPN_Connections[ctr, 2] = line_items[1]
+      ctr += 1
+    
+    Endif
+    
   Next
   
   VPN_Names.List = VPN_data_names
