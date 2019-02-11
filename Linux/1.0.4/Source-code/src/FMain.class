@@ -3,7 +3,6 @@
 Private sVPNname As String ' Name of VPN working connection
 Private VPN_Data_Names As New String[]
 Private sVPNnameSettings As String ' Name of VPN settings connection
-'Private sVPNnameCurrent As String ' Name of VPN current connection
 
 Private sApplis As String ' Name of the application in process
 Private sNumberApplis As String ' Number of applications
