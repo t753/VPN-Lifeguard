@@ -1,13 +1,9 @@
 ' Gambas class file
 
-Private sVPNuuid As String ' ID of the VPN working connection
 Private sVPNname As String ' Name of VPN working connection
-
-Private sVPNuuidSettings As String ' ID of the VPN settings connection
+Private VPN_Data_Names As New String[]
 Private sVPNnameSettings As String ' Name of VPN settings connection
-
-Private sVPNuuidCurrent As String ' ID of the VPN current connection
-Private sVPNnameCurrent As String ' Name of VPN current connection
+'Private sVPNnameCurrent As String ' Name of VPN current connection
 
 Private sApplis As String ' Name of the application in process
 Private sNumberApplis As String ' Number of applications
@@ -22,7 +18,6 @@ Public CheckUseSettingsVPN As Boolean = True ' flag whther to prompt for change 
 Public GetConnection As Boolean = False ' flag that vpn active connection method is in progress
 Public Disconnections As Integer = 0 ' count of succesive disconnections
 'Public IP_Address As String
-Public VPN_Connections[100, 3] As String ' 2d array holding all possible vpn names and uuids 
 Public AppsInit As Boolean = True ' flag whether to print monitored apps started log entry
 Public ActiveVPNConnectionFound As Boolean ' flag that active vpn connection was found
 'Public timerCheckVPN_totalTime As Integer = 0 ' tracks total time for timerReload_Timer
@@ -163,15 +158,6 @@ Public Sub GetActiveVpnConnection(sMode As String)
   Dim sVPNuuidLoop As String ' ID of the VPN loop connection
   Dim sVPNnameLoop As String ' Name of VPN loop connection
   Dim sRet As String
-  Dim sVPNnameLen As Integer
-  Dim sVPNuuidLen As Integer
-  Dim ActiveLen As Integer  
-  Dim FirstColonPos As Integer
-  Dim SecondColonPos As Integer
-  Dim NewLinePos As Integer
-  Dim Line_Begin As Integer
-  Dim ActivePos As Integer  
-  Dim ctr As Integer  
   Dim ActiveState As String
   Dim sOutput_VPNS As String = ""
   Dim Folder As String = "~/.vpnlifeguard"
@@ -180,50 +166,45 @@ Public Sub GetActiveVpnConnection(sMode As String)
   Dim VPN_Loop_Found As Boolean
   Dim VPN_Settings_Used As Boolean
   Dim name As String
-  Dim uuid As String
+  Dim VPNs_Array As New String[]
+  Dim line_items As New String[]
+  Dim sLine As String
   'flag that current method is in progress
   GetConnection = True
 
   sVPNnameSettings = Settings["VPN Connection/Name"]
-  sVPNuuidSettings = Settings["VPN Connection/UUID"] 
+  'sVPNuuidSettings = Settings["VPN Connection/UUID"] 
   
   ActiveVPNConnectionFound = False
   VPN_Loop_Found = False
   VPN_Settings_Used = False
   VPN_Found = False
   
-  ctr = 0
-  
   ' get informations on connection to get name and vpn ID
   Shell "nmcli -t -f TYPE,NAME,UUID,ACTIVE c | grep vpn" To sRet
   
-  Line_Begin = 0
+  VPNs_Array = Split(sRet, "\n")
   
-  ' Loop through all vpn connections to find active vpn connections
-  While sVPNnameLoop <> "vpn"
+ ' Loop through all vpn connections to find active vpn connections
+  'While sVPNnameLoop <> "vpn"
+  For Each sLine In VPNs_Array
     
-    FirstColonPos = InStr(sRet, ":", Line_Begin, 1)
-    SecondColonPos = InStr(sRet, ":", FirstColonPos + 1, 1)
-    ActivePos = InStr(sRet, ":", SecondColonPos + 1, 1)
-    NewLinePos = InStr(sRet, Chr(10), ActivePos + 1, 1)
-    
-    sVPNnameLen = SecondColonPos - FirstColonPos - 1
-    sVPNnameLoop = Mid(sRet, FirstColonPos + 1, sVPNnameLen)
-    
-    sVPNuuidLen = ActivePos - SecondColonPos - 1
-    sVPNuuidLoop = Mid(sRet, SecondColonPos + 1, sVPNuuidLen)
-    
-    ActiveLen = NewLinePos - ActivePos - 1
-    ActiveState = Mid(sRet, ActivePos + 1, ActiveLen)
-    
-    Line_Begin = NewLinePos + 1
+    line_items = Split(sLine, ":")
+     
+    sVPNnameLoop = line_items[1]  
+    sVPNuuidLoop = line_items[2]
+    ActiveState = line_items[3]
+    'Line_Begin = NewLinePos + 1
     
     ' Only assign array values if saving vpn connections to files
     If sVPNnameLoop <> "vpn" And sMode = "Config" Then
       
-      VPN_Connections[ctr, 1] = sVPNnameLoop
-      VPN_Connections[ctr, 2] = sVPNuuidLoop
+      VPN_Data_Names.Add(sVPNnameLoop)
       
+    Endif
+    
+    If sVPNnameLoop = "vpn" Then
+      Break
     Endif
     
     ' Used for Connect VPN button (for ConnectVPN_Click())
@@ -234,24 +215,20 @@ Public Sub GetActiveVpnConnection(sMode As String)
         If Message.Question("Do you want keep the following VPN Connection? " & Chr(10) & "You should only keep 1 ..." & Chr(10) & "VPN Connection = " & sVPNnameLoop, " Yes ", " No ") = 1 Then  
   
           sVPNname = sVPNnameLoop
-          sVPNuuid = sVPNuuidLoop
-          sVPNnameCurrent = sVPNname
-          sVPNuuidCurrent = sVPNuuid
+          'sVPNnameCurrent = sVPNname
           VPN_Loop_Found = True
           'Break
           
         Else
    
           ' So to have only 1 active vpn connection
-          Shell "nmcli con down uuid " & sVPNuuidLoop
+          Shell "nmcli con down id " & Shell$(sVPNnameLoop)
           
           If VPN_Loop_Found = False Then
               
             sVPNname = ""
-            sVPNuuid = ""
-            sVPNnameCurrent = ""
-            sVPNuuidCurrent = ""
-          
+            'sVPNnameCurrent = ""
+         
           Endif
    
           Wait 1 's
@@ -271,11 +248,11 @@ Public Sub GetActiveVpnConnection(sMode As String)
         
         If Message.Question("Select Yes to connect the next vpn and enter the password ..." & Chr(10) & Chr(10) & "vpn = " & sVPNnameLoop, "Yes ", " No ") = 1 Then   
           
-          Shell "nmcli con up uuid " & sVPNuuidLoop
+          Shell "nmcli con up id " & Shell$(sVPNnameLoop)
           
           Message("Press OK to disconnect the current connected vpn ...")
           
-          Shell "nmcli con down uuid " & sVPNuuidLoop
+          Shell "nmcli con down id " & Shell$(sVPNnameLoop)
           
         Endif
         
@@ -305,31 +282,16 @@ Public Sub GetActiveVpnConnection(sMode As String)
         Endif
       Endif
     Endif
-    
-    ctr += 1
-    
-  Wend
+        
+  Next
   
-  ctr -= 2
- 
   ' Save all vpn connections to file for loading to main window (for LoadVPN_Data())
   If sMode = "Config" Then
     
-    For i = 0 To ctr 
-      
-      name = VPN_Connections[i, 1]
-      uuid = VPN_Connections[i, 2]
-      
-      If i < ctr Then
- 
-         sOutput_VPNS &= name & "," & uuid & "\n"
-        
-      Else
-     
-        sOutput_VPNS &= name & "," & uuid 
-       
-      Endif
-      
+    For Each name In VPN_Data_Names 
+         
+      sOutput_VPNS &= name & "\n"
+              
     Next
  
     File.Save(FileName, sOutput_VPNs)
@@ -338,7 +300,7 @@ Public Sub GetActiveVpnConnection(sMode As String)
   
   ' Get settings connection if chosen or from list om main window (if above loop connection not selected)
   ' - for ConnectVPN_Click()
-  If ChangeVPN = False And VPN_Loop_Found = False And sMode = "Init" Then 
+  If ChangeVPN = False And sMode = "Init" Then 
     
     ' Get settings connection if chosen
     If CheckUseSettingsVPN = True
@@ -352,18 +314,17 @@ Public Sub GetActiveVpnConnection(sMode As String)
         If Message.Question("Would you like to connect to your VPN settings connection?" & Chr(10) & "VPN current Connection = " & sVPNname & Chr(10) & "VPN settings Connection = " & sVPNnameSettings, " Yes ", " No ") = 1 Then   
           
           If VPN_Found = True Then
-            Shell "nmcli con down uuid " & sVPNuuid
+            Shell "nmcli con down id " & Shell$(sVPNname)
           Endif
           VPN_Settings_Used = True
           sVPNname = sVPNnameSettings
-          sVPNnameCurrent = sVPNname
-          sVPNuuid = sVPNuuidSettings
-          Shell "nmcli con up uuid " & sVPNuuid
-          'VPN_Found = True
-          'Wait 2
+          'sVPNnameCurrent = sVPNname
+          
+          Shell "nmcli con up id " & Shell$(sVPNname)
+       
         Endif
         
-        If Message.Question("Click Yes not to see the settings prompt any more this session ...", "Yes ", " No ") = 1 Then   
+        If Message.Question("Click Yes not to see the settings prompt any more this session ...", " Yes ", " No ") = 1 Then   
           CheckUseSettingsVPN = False
         Endif
       Endif
@@ -379,15 +340,13 @@ Public Sub GetActiveVpnConnection(sMode As String)
           If sVPNname <> VPN_Names[i].Text Then
             
             If sVPNname <> ""
-              Shell "nmcli con down uuid " & sVPNuuid
+               Shell "nmcli con down id " & Shell$(sVPNname)
             Endif
            
-            sVPNname = VPN_Connections[i, 1]
-            sVPNnameCurrent = sVPNname
-            sVPNuuid = VPN_Connections[i, 2]
-            sVPNuuidCurrent = sVPNuuid
+            sVPNname = VPN_Data_Names[i]
+            'sVPNnameCurrent = sVPNname
             
-            Shell "nmcli con up uuid " & sVPNuuid
+            Shell "nmcli con up id " & Shell$(sVPNname)
            
           Endif
         Endif
@@ -413,9 +372,8 @@ Public Sub ReadVPN_Data()
   Dim FileName As String = Folder & "/VPNs_data.csv"
   Dim sLine As String
   Dim VPN_data As String[]
-  Dim VPN_data_names As New String[]
-  Dim line_items As New String[]
-  Dim ctr As Integer = 0
+  'Dim line_items As New String[]
+  'Dim ctr As Integer = 0
   
   If Not Exist(FileName) Then 
     Message("VPN File missing ... quit and restart application")
@@ -425,21 +383,15 @@ Public Sub ReadVPN_Data()
  
   For Each sLine In VPN_data
     
-    'Print "sLine = ", sLine
-    
     If sLine <> "" Then
       
-      line_items = Split(sLine, ",")
-      VPN_data_names.Add(line_items[0])
-      VPN_Connections[ctr, 1] = line_items[0]
-      VPN_Connections[ctr, 2] = line_items[1]
-      ctr += 1
+      VPN_Data_Names.Add(sLine)
     
     Endif
     
   Next
   
-  VPN_Names.List = VPN_data_names
+  VPN_Names.List = VPN_Data_Names
   
 End
 
@@ -481,18 +433,16 @@ Private Sub Store_VPN()
   
   ChangeVPN = True
   
-  If Message.Question("Do you want add the current VPN Connection to the settings?" & Chr(10) & "VPN current name= " & sVPNnameCurrent & Chr(10) & "VPN current settings = " & sVPNnameSettings & Chr(10) & "If settings is blank, choose Yes.", " Yes ", " No ") = 1 Then  
+  If Message.Question("Do you want add the current VPN Connection to the settings?" & Chr(10) & "VPN current name= " & sVPNname & Chr(10) & "VPN current settings = " & sVPNnameSettings & Chr(10) & "If settings is blank, choose Yes.", " Yes ", " No ") = 1 Then  
     
-    If VPN_Found = True Then
+    'If VPN_Found = True Then
       
-      Settings["VPN Connection/Name"] = sVPNnameCurrent
-      Settings["VPN Connection/UUID"] = sVPNuuidCurrent
+      Settings["VPN Connection/Name"] = sVPNname
       Settings.Save
       Sleep 2
       sVPNnameSettings = Settings["VPN Connection/Name"]
-      sVPNuuidSettings = Settings["VPN Connection/UUID"] 
       
-    Endif
+    'Endif
     
   Endif ' Prompt yes/no
   
@@ -655,8 +605,8 @@ Public Sub timerReload_Timer()
       iConnectionTries += 1
   
       ' re-establish vpn connection
-      Shell "nmcli con up uuid " & sVPNuuid
-      
+       Shell "nmcli con up id " & Shell$(sVPNname)
+       
       Sleep 1
       
      
@@ -665,7 +615,7 @@ Public Sub timerReload_Timer()
       
       ' if vpn not connected after 3 tries probably lost internet connection
       ' so quit VPN Lifeguard
-      If ActiveVPNConnectionFound = False And sVPNuuid <> "" Then
+      If ActiveVPNConnectionFound = False And sVPNname <> "" Then
         
         If iConnectionTries <= 2 Then
           
@@ -787,7 +737,7 @@ Public Sub Form_Close()
   Wait 1
   
   ' disconnect vpn
-  Shell "nmcli con down uuid " & sVPNuuid
+  Shell "nmcli con down id " & Shell$(sVPNname)
   
   NotifySend("Disconnected", "")
   
