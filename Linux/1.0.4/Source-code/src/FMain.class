@@ -157,6 +157,7 @@ Public Sub GetActiveVpnConnection(sMode As String)
   Dim sVPNuuidLoop As String ' ID of the VPN loop connection
   Dim sVPNnameLoop As String ' Name of VPN loop connection
   Dim sRet As String
+  Dim VPN_Names_Array As New String[]
   Dim ActiveState As String
   Dim sOutput_VPNS As String = ""
   Dim Folder As String = "~/.vpnlifeguard"
@@ -188,22 +189,20 @@ Public Sub GetActiveVpnConnection(sMode As String)
   'While sVPNnameLoop <> "vpn"
   For Each sLine In VPNs_Array
     
-    line_items = Split(sLine, ":")
+    If sLine <> "" Then
+      
+      line_items = Split(sLine, ":")
      
-    sVPNnameLoop = line_items[1]  
-    sVPNuuidLoop = line_items[2]
-    ActiveState = line_items[3]
-    'Line_Begin = NewLinePos + 1
-    
-    ' Only assign array values if saving vpn connections to files
-    If sVPNnameLoop <> "vpn" And sMode = "Config" Then
+      sVPNnameLoop = line_items[1]  
+      sVPNuuidLoop = line_items[2]
+      ActiveState = line_items[3]
       
-      VPN_Data_Names.Add(sVPNnameLoop)
+      If sMode = "Config" Then
       
-    Endif
+        VPN_Names_Array.Add(sVPNnameLoop)
+      
+      Endif
     
-    If sVPNnameLoop = "vpn" Then
-      Break
     Endif
     
     ' Used for Connect VPN button (for ConnectVPN_Click())
@@ -214,9 +213,7 @@ Public Sub GetActiveVpnConnection(sMode As String)
         If Message.Question("Do you want keep the following VPN Connection? " & Chr(10) & "You should only keep 1 ..." & Chr(10) & "VPN Connection = " & sVPNnameLoop, " Yes ", " No ") = 1 Then  
   
           sVPNname = sVPNnameLoop
-          'sVPNnameCurrent = sVPNname
           VPN_Loop_Found = True
-          'Break
           
         Else
    
@@ -226,8 +223,7 @@ Public Sub GetActiveVpnConnection(sMode As String)
           If VPN_Loop_Found = False Then
               
             sVPNname = ""
-            'sVPNnameCurrent = ""
-         
+        
           Endif
    
           Wait 1 's
@@ -287,7 +283,7 @@ Public Sub GetActiveVpnConnection(sMode As String)
   ' Save all vpn connections to file for loading to main window (for LoadVPN_Data())
   If sMode = "Config" Then
     
-    For Each name In VPN_Data_Names 
+    For Each name In VPN_Names_Array 
          
       sOutput_VPNS &= name & "\n"
               
