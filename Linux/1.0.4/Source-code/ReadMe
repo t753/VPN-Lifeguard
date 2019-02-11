@@ -16,7 +16,7 @@ You can load the project into Gambas3, make the edits (not necessary in this rep
 and then make an executable (VPNLifeguard.gambas). You can then copy and paste the executable to the desktop,
 and just run it.
 
-Or you can just copy VPNLifeguard2.gambas to where you want and just run it. The gambas dependecy must be installed to run it:
+Or you can just copy VPNLifeguard.gambas to where you want and just run it. The gambas dependecy must be installed to run it:
 
 sudo add-apt-repository ppa:gambas-team/gambas3  
 sudo apt-get update
