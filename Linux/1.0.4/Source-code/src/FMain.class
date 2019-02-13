@@ -350,7 +350,7 @@ Public Sub GetActiveVpnConnection(sMode As String)
     
   Endif
   
-  If sMode <> "Check" And sMode <> "PSWD" Then
+  If sMode = "Init" And sVPNname <> "" Then
     bFlag = True
   Endif
   
