@@ -1,3 +1,11 @@
+Note: This fork includes updates for the VPN Lifeguard for Linux to get it to work properly since some of Linux shell
+       commands used in the original master by Philippe734 no longer work. So this fork includes edits to make the 
+       application work with slightly different shell commands. This fork also includes extra code that make the application
+       for Linux more robust. You can just download and install the .deb for Ubuntu/Mint, or for your different version of 
+       Linux download the source code, install the Gambas3 IDE, and then complie the code to make make a runnable executable
+       and/or create an installation package in the Gambas3 IDE. Or you can just copy the executable (VPNLifeguard.gambas) the 
+       downloade source code and run it (the gambas3 dependencies must be installed to do this (sudo apt-get install gambas)
+  
 # VPN Lifeguard
 
 Application to protect yourself when your VPN disconnects
