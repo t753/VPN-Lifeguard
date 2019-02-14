@@ -28,7 +28,7 @@ Portable version for Windows 7, 8, 10 (1 MB) : [![Windows][2]][1]
 
 Linux Ubuntu/Debian/Mint (1 MB) : [![Linux][2]][3]
 
-  [3]: https://github.com/Philippe734/VPN-Lifeguard/raw/master/Linux/1.0.4/Setup_VPNLifeguard_for_Ubuntu.deb
+  [3]: https://github.com/t753/VPN-Lifeguard/raw/master/Linux/1.0.4/Setup_VPN_Lifeguard_for_Ubuntu.deb
 
 
 ### Install for Linux
@@ -41,7 +41,7 @@ Application written in Visual Basic Gambas.
   ```
 2. Download the package .deb and install it :
   ```
-  sudo dpkg -i ~/Downloads/Setup_VPNLifeguard_for_Ubuntu.deb && sudo apt-get install -fy
+  sudo dpkg -i ~/Downloads/Setup_VPN_Lifeguard_for_Ubuntu.deb && sudo apt-get install -fy
   ```
 The dependancy for the Gambas language will be automatically installed.
 The application is not in the PPA and can't be install with a classic apt :
