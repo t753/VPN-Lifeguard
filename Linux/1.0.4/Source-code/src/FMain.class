@@ -335,15 +335,15 @@ Public Sub GetActiveVpnConnection(sMode As String)
           If sVPNname <> VPN_Names[i].Text Then
             
             If sVPNname <> ""
-               Shell "nmcli con down id " & Shell$(sVPNname)
+              Shell "nmcli con down id " & Shell$(sVPNname)
             Endif
-           
-            sVPNname = VPN_Data_Names[i]
-            'sVPNnameCurrent = sVPNname
-            
-            Shell "nmcli con up id " & Shell$(sVPNname)
-           
           Endif
+          
+          sVPNname = VPN_Data_Names[i]
+          'sVPNnameCurrent = sVPNname
+          
+          Shell "nmcli con up id " & Shell$(sVPNname)
+          
         Endif
       Next 
     Endif
