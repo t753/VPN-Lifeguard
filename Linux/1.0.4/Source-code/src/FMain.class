@@ -22,6 +22,7 @@ Public ActiveVPNConnectionFound As Boolean ' flag that active vpn connection was
 'Public timerCheckVPN_totalTime As Integer = 0 ' tracks total time for timerReload_Timer
 
 Public pr As Process
+Public NL As String = Chr$(10)
 
 Public Sub Form_Open()
   
@@ -47,6 +48,7 @@ Public Sub Form_Open()
   'Shell "curl ifconfig.me" To IP_Address
   
   Initialize &= GetTime()  
+  Initialize = NL & Initialize & NL
   'Initialize &= " IP Address = " & IP_Address & " " & GetTime()  
   WriteToLogFile("Initialize", Initialize)
   
@@ -85,7 +87,7 @@ Public Sub cmdConfig_Click()
         
         If iApplis <= CByte(sNumberApplis) Then
           
-          sApplis = InputBox("What is the name of the #" & iApplis & " application to manage ?" & Chr$(10) & " For example : transmission or firefox", "Type a name of application")
+          sApplis = InputBox("What is the name of the #" & iApplis & " application to manage ?" & Chr(13) & NL & "For example : transmission or firefox", "Type a name of application")
           
         Else
           
@@ -210,7 +212,7 @@ Public Sub GetActiveVpnConnection(sMode As String)
       
       If ActiveState = "yes" Then
         
-        If Message.Question("Do you want keep the following VPN Connection? " & Chr(10) & "You should only keep 1 ..." & Chr(10) & "VPN Connection = " & sVPNnameLoop, " Yes ", " No ") = 1 Then  
+        If Message.Question("Do you want keep the following VPN Connection? " & NL & "You should only keep 1 ..." & NL & "VPN Connection = " & sVPNnameLoop, " Yes ", " No ") = 1 Then  
   
           sVPNname = sVPNnameLoop
           VPN_Loop_Found = True
@@ -241,7 +243,7 @@ Public Sub GetActiveVpnConnection(sMode As String)
       
       If sVPNname <> sVPNnameLoop Then
         
-        If Message.Question("Select Yes to connect the next vpn and enter the password ..." & Chr(10) & Chr(10) & "vpn = " & sVPNnameLoop, "Yes ", " No ") = 1 Then   
+        If Message.Question("Select Yes to connect the next vpn and enter the password ..." & NL & NL & "vpn = " & sVPNnameLoop, "Yes ", " No ") = 1 Then   
           
           Shell "nmcli con up id " & Shell$(sVPNnameLoop)
           
@@ -306,7 +308,7 @@ Public Sub GetActiveVpnConnection(sMode As String)
           Store_VPN()
         Endif
         
-        If Message.Question("Would you like to connect to your VPN settings connection?" & Chr(10) & "VPN current Connection = " & sVPNname & Chr(10) & "VPN settings Connection = " & sVPNnameSettings, " Yes ", " No ") = 1 Then   
+        If Message.Question("Would you like to connect to your VPN settings connection?" & NL & "VPN current Connection = " & sVPNname & NL & "VPN settings Connection = " & sVPNnameSettings, " Yes ", " No ") = 1 Then   
           
           If VPN_Found = True Then
             Shell "nmcli con down id " & Shell$(sVPNname)
@@ -427,7 +429,7 @@ Private Sub Store_VPN()
   
   ChangeVPN = True
   
-  If Message.Question("Do you want add the current VPN Connection to the settings?" & Chr(10) & "VPN current name= " & sVPNname & Chr(10) & "VPN current settings = " & sVPNnameSettings & Chr(10) & "If settings is blank, choose Yes.", " Yes ", " No ") = 1 Then  
+  If Message.Question("Do you want add the current VPN Connection to the settings?" & NL & "VPN current name= " & sVPNname & NL & "VPN current settings = " & sVPNnameSettings & NL & "If settings is blank, choose Yes.", " Yes ", " No ") = 1 Then  
     
     'If VPN_Found = True Then
       
@@ -683,7 +685,8 @@ Public Sub WriteToFile(FileName As String, sMessage As String)
   Dim hFile As File
   
   hFile = Open FileName For Create
-  sMessage = sMessage & Chr(10)
+  CheckForNewline(sMessage)
+  'sMessage &= "\n"
   Write #hFile, sMessage
   
 End
@@ -693,10 +696,20 @@ Public Sub AppendToFile(FileName As String, sMessage As String)
   Dim hFile As File
   
   hFile = Open FileName For Append
-  sMessage = sMessage & Chr(10)
+  CheckForNewline(sMessage)
+  'sMessage &= "\n"
   Write #hFile, sMessage
   
 End
+
+Public Sub CheckForNewline(sMessage As String)
+  
+  If Not InStr(NL, sMessage) Then
+    sMessage &= NL
+  Endif
+  
+End
+
 
 Public Sub cmdQuit_Click()
   
