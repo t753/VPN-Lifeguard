@@ -652,7 +652,9 @@ Public Sub WriteToLogFile(sMode As String, sMessage As String)
   
   Dim Folder As String = "~/.vpnlifeguard"
   Dim FileName As String = Folder & "/log.txt"
-  Dim FileSize As Integer
+  Dim command As String
+  Dim last_lines As String
+  'Dim FileSize As Integer
   
   If Not Exist(Folder) Then
     
@@ -662,29 +664,11 @@ Public Sub WriteToLogFile(sMode As String, sMessage As String)
   
   If sMode = "Initialize" Then 
     
-    If Not Exist(FileName) Then
-      
-      WriteToFile(FileName, sMessage)
-      
-    Else
-      
-      With Stat(FileName)
-        FileSize = Round(.Size / 1024)
-      End With
-      
-      If FileSize > 50 Then
-        
-        Shell "rm " & FileName
-        Wait 1 's
-        WriteToFile(FileName, sMessage)
-        
-      Else
-        
-        AppendToFile(FileName, sMessage)
-        
-      Endif
-      
-    Endif
+      ' Keep last 100 lines of log file
+      command = "tail -n 100 " & FileName 
+      Shell command To last_lines
+      WriteToFile(FileName, last_lines)
+      AppendToFile(FileName, sMessage)
     
   Else 
     
