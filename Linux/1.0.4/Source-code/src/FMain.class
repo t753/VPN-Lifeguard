@@ -340,7 +340,6 @@ Public Sub GetActiveVpnConnection(sMode As String)
           Endif
           
           sVPNname = VPN_Data_Names[i]
-          'sVPNnameCurrent = sVPNname
           
           Shell "nmcli con up id " & Shell$(sVPNname)
           
@@ -814,17 +813,19 @@ Private Sub KillApplis()
         
         Kill_Attempts += 1
         
-        Shell "killall " & chk.Text
+        Shell "pkill " & chk.Text Wait
         
-        'Sleep 0.05 's Give a little time to kill application
+        'Sleep 0.01 's Give a little time to kill application
         
-        Shell "pgrep " & chk.Text To chk_kill
+        Shell "pgrep " & chk.Text Wait To chk_kill
         
-        TimeEnd = GetCurrentTime()
-        TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
+        'TimeEnd = GetCurrentTime()
+        'TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
         
         If chk_kill = "" Then
           
+          TimeEnd = GetCurrentTime()
+          TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
           sMessage = "Connection lost ... killed " & chk.Text & " .... number of attempts = " & Str$(Kill_Attempts) & " ... time exposed = " & Str$(TimeExposed) & " seconds ... " & GetTime() 
           WriteToLogFile("Append", sMessage)
           Apps_Killed = True
@@ -832,6 +833,8 @@ Private Sub KillApplis()
           
         Else If Kill_Attempts = 4 Then
           
+          TimeEnd = GetCurrentTime()
+          TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
           sMessage = "Connection lost ... couldn't kill " & chk.Text & " ... number of attempts = 4 ... time exposed = " & Str$(TimeExposed) & " seconds ... " & GetTime()
           WriteToLogFile("Append", sMessage)
           
