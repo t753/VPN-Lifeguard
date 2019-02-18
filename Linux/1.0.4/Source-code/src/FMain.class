@@ -664,8 +664,8 @@ Public Sub WriteToLogFile(sMode As String, sMessage As String)
   
   If sMode = "Initialize" Then 
     
-      ' Keep last 100 lines of log file
-      command = "tail -n 100 " & FileName 
+      ' Keep last 200 lines of log file
+      command = "tail -n 200 " & FileName 
       Shell command To last_lines
       WriteToFile(FileName, last_lines)
       AppendToFile(FileName, sMessage)
