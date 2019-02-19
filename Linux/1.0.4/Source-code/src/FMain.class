@@ -189,7 +189,7 @@ Public Sub GetActiveVpnConnection(sMode As String)
   
  ' Loop through all vpn connections to find active vpn connections
   'While sVPNnameLoop <> "vpn"
-  For Each sLine In VPNs_Array
+  For Each sLine In VPNs_Array ' Begin VPN Lopp 
     
     If sLine <> "" Then
       
@@ -219,6 +219,8 @@ Public Sub GetActiveVpnConnection(sMode As String)
           
         Else
    
+          KillApplis()
+          
           ' So to have only 1 active vpn connection
           Shell "nmcli con down id " & Shell$(sVPNnameLoop)
           
@@ -239,6 +241,7 @@ Public Sub GetActiveVpnConnection(sMode As String)
       Endif
     Endif
     
+    ' If Config button was clicked on main window
     If sMode = "PSWD" And sVPNnameLoop <> "vpn" Then
       
       If sVPNname <> sVPNnameLoop Then
@@ -280,7 +283,7 @@ Public Sub GetActiveVpnConnection(sMode As String)
       Endif
     Endif
         
-  Next
+  Next ' End VPN Loop
   
   ' Save all vpn connections to file for loading to main window (for LoadVPN_Data())
   If sMode = "Config" Then
@@ -297,12 +300,12 @@ Public Sub GetActiveVpnConnection(sMode As String)
   
   ' Get settings connection if chosen or from list om main window (if above loop connection not selected)
   ' - for ConnectVPN_Click()
-  If ChangeVPN = False And sMode = "Init" Then 
+  If ChangeVPN = False And sMode = "Init" Then ' Begin IF 1
     
     ' Get settings connection if chosen
-    If CheckUseSettingsVPN = True
+    If CheckUseSettingsVPN = True ' Begin IF 2
     
-      If sVPNname <> sVPNnameSettings Then
+      If sVPNname <> sVPNnameSettings Then ' Begin IF 3
         
         If sVPNname <> "" Then
           Store_VPN()
@@ -311,8 +314,13 @@ Public Sub GetActiveVpnConnection(sMode As String)
         If Message.Question("Would you like to connect to your VPN settings connection?" & NL & "VPN current Connection = " & sVPNname & NL & "VPN settings Connection = " & sVPNnameSettings, " Yes ", " No ") = 1 Then   
           
           If VPN_Found = True Then
+            
+            KillApplis()
+            
             Shell "nmcli con down id " & Shell$(sVPNname)
+            
           Endif
+          
           VPN_Settings_Used = True
           sVPNname = sVPNnameSettings
           'sVPNnameCurrent = sVPNname
@@ -324,20 +332,24 @@ Public Sub GetActiveVpnConnection(sMode As String)
         If Message.Question("Click Yes not to see the settings prompt any more this session ...", " Yes ", " No ") = 1 Then   
           CheckUseSettingsVPN = False
         Endif
-      Endif
-    Endif
+      Endif ' End IF 3
+    Endif ' End IF 2
     
     ' Get connection from list on main window if settings not used
-    If VPN_Settings_Used = False Then
+    If VPN_Settings_Used = False Then ' Begin IF 4
       
-      For i = 0 To VPN_Names.Count - 1
+      For i = 0 To VPN_Names.Count - 1 ' Loop through VPN names on main window
         
-        If VPN_Names[i].Selected Then
+        If VPN_Names[i].Selected Then ' Begin IF 5
           
           If sVPNname <> VPN_Names[i].Text Then
             
             If sVPNname <> ""
+            
+              KillApplis()
+            
               Shell "nmcli con down id " & Shell$(sVPNname)
+              
             Endif
           Endif
           
@@ -345,12 +357,13 @@ Public Sub GetActiveVpnConnection(sMode As String)
           
           Shell "nmcli con up id " & Shell$(sVPNname)
           
-        Endif
-      Next 
-    Endif
+        Endif ' End IF 5
+      Next ' End VPN main window loop
+    Endif ' End IF 4
     
-  Endif
+  Endif ' End IF 1
   
+  ' Set flag to restart monitored applications if Connect VPN button was clicked
   If sMode = "Init" And sVPNname <> "" Then
     bFlag = True
   Endif
