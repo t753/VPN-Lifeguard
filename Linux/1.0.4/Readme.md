@@ -10,6 +10,10 @@ If you want to use this fork of the app then it lists all of your VPN possible c
 select one and connect to it. Check to see if your VPN provider has an OpenVPN setup as an alternative to using their app. 
 This will allow having a VPN list on the main window.
 
+Note: If you're going to load the project into thr Gambas3 IDE for editing/building executable/building installation package,
+change the "Source-code" folder name to "VPNLifeguard" before you load the project into the Gamgas3 IDE. 
+That way the installation package builds correctly.
+
 # VPN Lifeguard for Linux
 
 ![Screenshot](https://raw.github.com/t753/VPN-Lifeguard/master/Linux/1.0.4/VPN_Lifeguard_for_Linux.png)
