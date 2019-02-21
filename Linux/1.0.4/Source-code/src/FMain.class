@@ -811,11 +811,13 @@ Private Sub KillApplis()
     ' each checkbox
     If (chk.Tag = "chkApplis") And If (chk.Text <> "") And If (chk.value = True) Then
       
+      Kill_Attempts = 0
+      
       For k = 1 To 4
         ' close applications
         
-        ' Originally the edit here changed the "k" to 10 from 3,
-        ' but it shouldn't take more than 3 attempts to close the application.
+        ' Originally the edit here changed the "k" to 3 from 10,
+        ' but it shouldn't take more than 4 attempts to close the application.
         ' So I changed the "k" loop to 4. That way the loop can finish and
         ' the vpn connection can be re-established, limiting application exposure.
         
