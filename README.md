@@ -4,7 +4,7 @@ application work with slightly different shell commands. This fork also includes
 for Linux more robust. You can just download and install the .deb for Ubuntu/Mint, or for your different version of 
 Linux download the source code, install the Gambas3 IDE, and then complie the code to make make a runnable executable
 and/or create an installation package in the Gambas3 IDE. Or you can just copy the executable (VPNLifeguard.gambas) from the 
-downloaded source code and run it (the gambas3 dependencies must be installed to do this (sudo apt-get install gambas3 (install the IDE)... after adding the repository for it ... see Linux page of this repsoitory).
+downloaded source code and run it (the gambas3 dependencies must be installed to do this (sudo apt-get install gambas3 (install the IDE)... after adding the repository for gambas3).
   
 # VPN Lifeguard
 
