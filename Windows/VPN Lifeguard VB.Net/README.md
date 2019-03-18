@@ -44,12 +44,12 @@ Free & open source application to protect your privacy when your VPN disconnects
 Very useful for browsing or go behind a P2P VPN without being exposed during disconnection issues.
 
 
-![screenshot Windows](https://raw.github.com/t753/VPN-Lifeguard/blob/master/Windows/VPN%20Lifeguard%20VB.Net/VPN_Lifeguard_VB.Net_2019-03-18_05-30-04.png)
+![screenshot Windows](https://raw.github.com/t753/VPN-Lifeguard/master/Windows/VPN%20Lifeguard%20VB.Net/VPN_Lifeguard_VB.Net_2019-03-18_05-30-04.png)
 
 ## Download
 Setup .zip version for Windows 7, 8, 10 (1 MB) : [![Windows][2]][1]
 
-  [1]: https://github.com/t753/VPN-Lifeguard/blob/raw/master/Windows/VPN%20Lifeguard%20VB.Net/VPN_Lifeguard_VB.Net_v1.0-Setup.exe.zip
+  [1]: https://github.com/t753/VPN-Lifeguard/raw/raw/master/Windows/VPN%20Lifeguard%20VB.Net/VPN_Lifeguard_VB.Net_v1.0-Setup.exe.zip
   [2]: https://cloud.githubusercontent.com/assets/24923693/21724562/26754b04-d435-11e6-9654-779c17c2ebcf.png
 
 
