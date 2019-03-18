@@ -1,10 +1,31 @@
-Note: This fork includes updates for the VPN Lifeguard for Linux to get it to work properly since some of Linux shell
-commands used in the original master by Philippe734 no longer work. So this fork includes edits to make the 
-application work with slightly different shell commands. This fork also includes extra code that make the application
-for Linux more robust. You can just download and install the .deb for Ubuntu/Mint, or for your different version of 
-Linux download the source code, install the Gambas3 IDE, and then complie the code to make make a runnable executable
-and/or create an installation package in the Gambas3 IDE. Or you can just copy the executable (VPNLifeguard.gambas) from the 
-downloaded source code and run it (the gambas3 dependencies must be installed to do this (sudo apt-get install gambas3 (install the IDE)... after adding the repository for gambas3).
+Note: This version of VPN Lifeguard is a VB.Net application
+(the original by Phillipe was VB6). This application
+will monitor your connection and, if you get 
+disconnected will kill your monitored applications,
+and attempt to restablish your connection, and restart
+your monitored applications.
+
+It has all new source code. The original application
+would monitor only your Windows VPN connection.
+This application will monitor that plus your OpenVPN
+connection if you connect to that.
+
+The OpenVPN connection is the preferred connection
+because once you enter your VPN credentials for the server 
+connection and save them, you generally can re-connect easily
+through the options in this application.
+
+If you connect a Windows VPN connection, you can choose either 
+Automatic or User Prompt connection types. The Automatic mode 
+can get and save your VPN credentials for easy re-connection. But the
+credentials are stored unencrypted in the application's INI file 
+(settings file).
+
+Alternatively for the  Windows VPN connection you can choose the 
+User Prompt mode. The connection is not automatic as you are 
+prompted for connection credentials to connect, and prompted to 
+disconnect. The advantage to this mode is that your credentials aren't 
+stored unencrypted in the INI settings file.
   
 # VPN Lifeguard
 
@@ -21,8 +42,6 @@ Free & open source application to protect your privacy when your VPN disconnects
 - No leakage to close applications when disconnecting
 
 Very useful for browsing or go behind a P2P VPN without being exposed during disconnection issues.
-
-VPN Lifeguard is guaranteed free of virus, [report available here](https://www.virustotal.com/fr/file/fd9ea19dabb0835c394bb7cc474a779a902697180357e6ffb18faff933c69bb7/analysis/1289253720/)
 
 
 ![screenshot Windows](https://cloud.githubusercontent.com/assets/24923693/21724985/c862e628-d436-11e6-8a80-de1ba45efb01.jpg)
