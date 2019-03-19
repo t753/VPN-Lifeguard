@@ -59,7 +59,7 @@ Public Class frmMain
         Timer1.Enabled = True
 
         ' Connection IP Address Connection Monitoring
-        Timer2.Interval = 500
+        Timer2.Interval = 600
         Timer2.Enabled = True
 
 
@@ -289,6 +289,9 @@ Retry:
             If GlobalVar.ApplicationsStarted Then
                 lblStatus.Text &= "And Monitoring"
             End If
+        Else
+            lblStatus.Text = "Service stopped"
+            lblOpInProgress.Text = "Disconnected"
         End If
 
     End Sub
@@ -299,8 +302,11 @@ Retry:
         'InitTray()
         'GlobalVar.InitTray = True
         'End If
-
-        Timer1.Interval = 5000
+        If GlobalVar.CurrentlyConnected Then
+            Timer1.Interval = 5000
+        Else
+            Timer1.Interval = 10000
+        End If
         TimerActive = True
 
         If Not Timer1_Enabled Then
@@ -602,18 +608,18 @@ Retry:
                 End If
             Next
 ExitSub:
-            GlobalVar.DisconnectionHandled = False
-            GlobalVar.CurrentlyConnected = True
+            'GlobalVar.DisconnectionHandled = False
+            'GlobalVar.CurrentlyConnected = True
 
-            If GlobalVar.CurrentlyConnected Then
-                lblStatus.Text = "Connected "
-                lblOpInProgress.Text = "Connected"
-                If GlobalVar.ApplicationsStarted Then
-                    lblStatus.Text &= "And Monitoring"
-                End If
-            End If
+            'If GlobalVar.CurrentlyConnected Then
+            '    lblStatus.Text = "Connected "
+            '    lblOpInProgress.Text = "Connected"
+            '    If GlobalVar.ApplicationsStarted Then
+            '        lblStatus.Text &= "And Monitoring"
+            '    End If
+            'End If
 
-            GlobalVar.CurrentlyConnected = True
+            'GlobalVar.CurrentlyConnected = True
             GlobalVar.OperationInProgress = False
         End If
     End Sub
@@ -735,7 +741,7 @@ Retry:
             End If
 
 EndSub:
-            GlobalVar.DisconnectionHandled = False
+            'GlobalVar.DisconnectionHandled = False
             GlobalVar.CurrentlyConnected = False
             GlobalVar.ApplicationsStarted = False
             lblOpInProgress.Text = "Disconnected"

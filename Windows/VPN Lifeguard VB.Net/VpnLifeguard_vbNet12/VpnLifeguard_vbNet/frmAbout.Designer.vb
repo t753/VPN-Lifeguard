@@ -36,13 +36,13 @@ Partial Class frmAbout
         Me.Label1.Name = "Label1"
         Me.Label1.Size = New System.Drawing.Size(292, 24)
         Me.Label1.TabIndex = 0
-        Me.Label1.Text = "VPN Lifeguard VB.Net version 1.0"
+        Me.Label1.Text = "VPN Lifeguard VB.Net version 1.1"
         '
         'Label2
         '
         Me.Label2.AutoSize = True
         Me.Label2.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label2.Location = New System.Drawing.Point(37, 80)
+        Me.Label2.Location = New System.Drawing.Point(35, 89)
         Me.Label2.Name = "Label2"
         Me.Label2.Size = New System.Drawing.Size(384, 420)
         Me.Label2.TabIndex = 1
