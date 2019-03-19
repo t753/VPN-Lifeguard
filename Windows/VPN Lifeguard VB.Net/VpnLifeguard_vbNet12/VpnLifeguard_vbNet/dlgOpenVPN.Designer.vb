@@ -88,7 +88,7 @@ Partial Class dlgOpenVPN
         Me.CheckBox1.Text = "Automatically connect to the selected server"
         Me.CheckBox1.UseVisualStyleBackColor = True
         '
-        'frmOpenVPN
+        'dlgOpenVPN
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
@@ -97,7 +97,7 @@ Partial Class dlgOpenVPN
         Me.Controls.Add(Me.BtnCancel)
         Me.Controls.Add(Me.BtnOK)
         Me.Controls.Add(Me.Panel1)
-        Me.Name = "frmOpenVPN"
+        Me.Name = "dlgOpenVPN"
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen
         Me.Text = "Select an OpenVPN Connection"
         Me.Panel1.ResumeLayout(False)

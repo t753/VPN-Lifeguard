@@ -59,7 +59,7 @@ Public Class frmMain
         Timer1.Enabled = True
 
         ' Connection IP Address Connection Monitoring
-        Timer2.Interval = 2000
+        Timer2.Interval = 500
         Timer2.Enabled = True
 
 
@@ -145,6 +145,7 @@ Public Class frmMain
                 WriteToLog("Application Quit")
             End If
 
+            NotifyIcon1.Visible = False
 
             Application.Exit()
 
@@ -299,7 +300,7 @@ Retry:
         'GlobalVar.InitTray = True
         'End If
 
-        Timer1.Interval = 10000
+        Timer1.Interval = 5000
         TimerActive = True
 
         If Not Timer1_Enabled Then
@@ -346,6 +347,14 @@ Retry:
         Dim fmm As New clsMainMethods
         Dim vpnCheck = New clsWindowsVPN
         Dim vpn_type As String
+        Dim watch As Stopwatch
+
+        'If GlobalVar.Timer2_Count = 0 Then
+        '    watch = Stopwatch.StartNew()
+        '    GlobalVar.Timer2_Count += 1
+        'End If
+
+        'GlobalVar.Timer2_Count += 1
 
         If Not Timer2_Enabled Then
             Timer2_Enabled = True
@@ -392,6 +401,12 @@ Retry:
             End If
             Timer2_Enabled = False
         End If
+
+        'MessageBox.Show("GlobalVar.Timer2_Count = " & (GlobalVar.Timer2_Count).ToString())
+        'If GlobalVar.Timer2_Count = 1 Then
+        '    watch.Stop()
+        '    MessageBox.Show("timer2 time = " & (watch.Elapsed.TotalMilliseconds).ToString())
+        'End If
 
     End Sub
 

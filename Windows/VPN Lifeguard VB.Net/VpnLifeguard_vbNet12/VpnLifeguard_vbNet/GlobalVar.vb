@@ -20,6 +20,7 @@ Class GlobalVar
     Public Shared MonitoredApplications As New List(Of Process)
 
     ' Runtime variables
+    Public Shared Timer2_Count As Integer = 0
     Public Shared AppContextUsed As Boolean = False
     Public Shared InitGlobalVarDone = False
     Public Shared InitTray As Boolean = False
