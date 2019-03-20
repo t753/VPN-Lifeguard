@@ -45,6 +45,7 @@ Very useful for browsing or go behind a P2P VPN without being exposed during dis
 
 
 ![screenshot Windows](https://raw.github.com/t753/VPN-Lifeguard/master/Windows/VPN%20Lifeguard%20VB.Net/VPN_Lifeguard_VB.Net_2019-03-18_05-30-04.png)
+![screenshot Windows](https://raw.github.com/t753/VPN-Lifeguard/master/Windows/VPN%20Lifeguard%20VB.Net/Config_2019-03-20_05-02-23.png)
 
 ## Download
 Setup .zip version for Windows 7, 8, 10 (1 MB) : [![Windows][2]][1]
