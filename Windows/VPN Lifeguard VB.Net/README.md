@@ -37,7 +37,7 @@ to re-establish a VPN connection automatically and restart managed applications.
 Mainly to be used in environments where the VPN connection is intermittent for
 some reason.
   
-# VPN Lifeguard
+# VPN Lifeguard VB.Net
 
 Application to protect yourself when your VPN disconnects
 
