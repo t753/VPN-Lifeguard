@@ -20,13 +20,22 @@ If you connect a Windows VPN connection, you can choose either
 Automatic or User Prompt connection types. The Automatic mode 
 can get and save your VPN credentials for easy re-connection. But the
 credentials are stored unencrypted in the application's INI file 
-(settings file).
+(settings file). The advantage is that the connection can be re-established
+automatically upon a lost connection, and manged applications re-started,
+the whole purpose of this application.
 
 Alternatively for the  Windows VPN connection you can choose the 
 User Prompt mode. The connection is not automatic as you are 
 prompted for connection credentials to connect, and prompted to 
 disconnect. The advantage to this mode is that your credentials aren't 
-stored unencrypted in the INI settings file.
+stored unencrypted in the INI settings file. But the disadvantage to this
+is that upon a lost connection, you can't re-connect automatically,
+missing the whole purpose of this application.
+
+The main purpose of this application is that upon a lost VPN connection 
+to re-establish a VPN connection automatically and restart managed applications.
+Mainly to be used in environments where the VPN connection is intermittent for
+some reason.
   
 # VPN Lifeguard
 
