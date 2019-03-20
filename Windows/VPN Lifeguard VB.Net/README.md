@@ -21,7 +21,7 @@ Automatic or User Prompt connection types. The Automatic mode
 can get and save your VPN credentials for easy re-connection. But the
 credentials are stored unencrypted in the application's INI file 
 (settings file). The advantage is that the connection can be re-established
-automatically upon a lost connection, and manged applications re-started,
+automatically upon a lost connection, and managed applications re-started,
 the whole purpose of this application.
 
 Alternatively for the  Windows VPN connection you can choose the 
