@@ -3,7 +3,7 @@ developed in Visual Studio 2017 (the original by Phillipe was VB6).
 It requires Microsoft .Net Framework 4.6.1 or greater.
 This application will monitor your connection and, if you get 
 disconnected will kill your monitored applications,
-and attempt to restablish your connection, and restart
+and attempt to re-establish your connection, and restart
 your monitored applications.
 
 It has all new source code. The original application
