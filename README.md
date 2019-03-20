@@ -5,6 +5,10 @@ for Linux more robust. You can just download and install the .deb for Ubuntu/Min
 Linux download the source code, install the Gambas3 IDE, and then complie the code to make make a runnable executable
 and/or create an installation package in the Gambas3 IDE. Or you can just copy the executable (VPNLifeguard.gambas) from the 
 downloaded source code and run it (the gambas3 dependencies must be installed to do this (sudo apt-get install gambas3 (install the IDE)... after adding the repository for gambas3).
+
+Note: This fork of VPN Lifeguard also contains a VB.Net application developed in Visual Studio 2017 (the original by Phillipe was VB6). 
+This application will monitor your connection and, if you get disconnected will kill your monitored applications, and attempt to restablish your connection, and restart your monitored applications. Go to the Windows folder to find it and the download.
+
   
 # VPN Lifeguard
 
