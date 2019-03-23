@@ -716,13 +716,9 @@ Retry:
             Dim vpn As VPN
             Dim fmm As New clsMainMethods
 
-            ' MessageBox.Show("Here 1 ...")
-
             If GlobalVar.ApplicationsStarted Then
                 KillApplications()
             End If
-
-            'MessageBox.Show("Here 2 ...")
 
             If conName = "" Then
                 GoTo EndSub
@@ -756,11 +752,9 @@ EndSub:
             lblStatus.Text = "Service stopped"
             GlobalVar.OperationInProgress = False
 
-            'If mode <> "Exit" Then
-
         Else
 
-            ' MessageBox.Show("Not currently connected ...")
+            'MessageBox.Show("Not currently connected ...")
 
         End If
 

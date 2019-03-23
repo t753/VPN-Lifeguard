@@ -21,6 +21,7 @@ Public Class clsMainMethods
     End Sub
 
 
+
     Public Sub ProcessExec(processarg As String, param As String, wait As Boolean)
 
         ' Start the child process.
@@ -97,9 +98,19 @@ Public Class clsMainMethods
         Dim command As String
         Dim param = ""
 
-        command = Application.StartupPath & "/OpenVPN_Disconnect.bat"
-        Dim wait As Boolean = True
-        ProcessExec(command, param, wait)
+        If GlobalVar.OpenVPN_ServerName <> "" And GlobalVar.OpenVPN_ServerName <> "None" Then
+            param = GlobalVar.OpenVPN_ServerName
+        ElseIf GlobalVar.AdapterTypeToAutomaticallyRun = "OpenVPN" Then
+            param = GlobalVar.ConnectionNameToAutomaticallyRun
+        End If
+
+        If param <> "" And param <> "None" Then
+
+            command = Application.StartupPath & "/OpenVPN_Disconnect.bat"
+            Dim wait As Boolean = True
+            ProcessExec(command, param, wait)
+
+        End If
 
     End Sub
 
