@@ -7,6 +7,8 @@ Public Class frmMain
     Public TimerActive As Boolean = False
     Public Timer1_Enabled As Boolean = False
     Public Timer2_Enabled As Boolean = False
+    Public fmm As New clsMainMethods
+
     ' Public wait_time As Double = 0
     'Public toggle_form As Boolean = False
     Public context As AppContext
@@ -167,7 +169,7 @@ Retry:
         GlobalVar.AllVPN_List.Clear()
         ListVPNConnections.Items.Clear()
 
-        Dim count1 As Integer =  GlobalVar.ActiveVPN_List.Count()
+        Dim count1 As Integer = GlobalVar.ActiveVPN_List.Count()
         Dim count2 As Integer = GlobalVar.AllVPN_List.Count()
         Dim count3 As Integer = ListVPNConnections.Items.Count()
 
@@ -646,7 +648,7 @@ ExitSub:
 
     Private Sub wait(ByVal hundrethseconds As Integer)
         'wait_time = 0
-        For i As Integer = 1 To hundrethseconds * 10
+        For i As Integer = 1 To hundrethseconds * 1
             System.Threading.Thread.Sleep(10)
             Application.DoEvents()
             ' wait_time += 1
@@ -714,7 +716,13 @@ Retry:
             Dim vpn As VPN
             Dim fmm As New clsMainMethods
 
-            KillApplications()
+            ' MessageBox.Show("Here 1 ...")
+
+            If GlobalVar.ApplicationsStarted Then
+                KillApplications()
+            End If
+
+            'MessageBox.Show("Here 2 ...")
 
             If conName = "" Then
                 GoTo EndSub
@@ -750,6 +758,10 @@ EndSub:
 
             'If mode <> "Exit" Then
 
+        Else
+
+            ' MessageBox.Show("Not currently connected ...")
+
         End If
 
     End Sub
@@ -771,6 +783,7 @@ EndSub:
         End If
 Retry:
         If Not TimerActive Then
+
             GlobalVar.ConnectionMode = "Start"
 
             Dim t As New Thread(Sub()
@@ -1020,12 +1033,10 @@ Retry:
 
             Dim proc As Process
 
-            'MessageBox.Show("GlobalVar.MonitoredApplications.Count = " & (GlobalVar.MonitoredApplications.Count).ToString())
-
             For Each proc In GlobalVar.MonitoredApplications
-                ' MessageBox.Show("Kill proc.Name = " & proc.ProcessName)
+                ' MessageBox.Show("Before proc kill ...")
                 proc.Kill()
-                wait(1)
+                ' MessageBox.Show("After proc kill ...")
             Next
             GlobalVar.MonitoredApplications.Clear()
             GlobalVar.ApplicationsStarted = False
