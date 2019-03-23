@@ -26,7 +26,7 @@ Public NL As String = Chr$(10)
 
 Public Sub Form_Open()
   
-  Dim Initialize As String = "Log File initialized " '& Now
+  Dim Initialize As String = "Log File initialized " 
   
   lblStatusBar.Text = "Disconnected"
   
@@ -47,7 +47,8 @@ Public Sub Form_Open()
   ' following line used to add current ip address to log entry
   'Shell "curl ifconfig.me" To IP_Address
   
-  Initialize &= GetTime()  
+ ' Initialize &= GetTime()  
+ Initialize = AddTime(Initialize)
   Initialize = NL & Initialize & NL
   'Initialize &= " IP Address = " & IP_Address & " " & GetTime()  
   WriteToLogFile("Initialize", Initialize)
@@ -58,11 +59,22 @@ Public Sub Form_Open()
   
 End
 
+Public Function AddTime(sMessage As String) As String
+  
+  sMessage = GetTime() & "  " & sMessage
+  Return sMessage
+  
+End
+
+
 Public Function GetTime() As String
   
   Dim date_time As String
   
   Shell "date +'%Y-%m-%d %I:%M:%S'" To date_time
+  
+  Dim pos As Integer = InStr(date_time, Chr(10), 1)
+  date_time = Mid(date_time, 1, pos - 1)
   
   Return date_time
   
@@ -512,9 +524,9 @@ Public Sub CheckConnections()
   GetActiveVpnConnection("Check")
   
   If ActiveVPNConnectionFound = False Then
-    sMessage = "VPN Connection lost ... probably internet connection lost ... " & GetTime()
+    sMessage = "VPN Connection lost ... probably internet connection lost ... " '& ' GetTime()
   Else
-    sMessage = "VPN Connection good ... internet connection and vpn connection good ... " & GetTime()
+    sMessage = "VPN Connection good ... internet connection and vpn connection good ... " ' & GetTime()
   Endif
   
   WriteToLogFile("Append", sMessage)
@@ -527,7 +539,7 @@ Public Sub timerReload_Timer()
   Dim chk As Object
   Dim sRet As String
   Dim sCommand As String
-  Dim sEntry As String = "VPN Connection re-established and Application(s) restarted ... " '& Now
+  Dim sEntry As String = "VPN Connection re-established and Application(s) restarted ... " 
   Dim sCouldnt_Kill As String = "VPN Connection re-established and Application(s) already running ... " 
   Dim sApp As String = ""
   Dim sApplications_Init As String = "Monitored application started on initialization ... "
@@ -577,11 +589,14 @@ Public Sub timerReload_Timer()
           sApp = chk.Text
           
           If AppsInit = True Then
-              sMessage = sApplications_Init & sApp & " ... " & GetTime() 
+              sMessage = sApplications_Init & sApp & " ... " 
+              sMessage = AddTime(sMessage)
           Else If Apps_Killed = True Then
-            sMessage = sEntry & sApp & " ... " & GetTime() 
+            sMessage = sEntry & sApp & " ... " 
+            sMessage = AddTime(sMessage)
           Else
-            sMessage = sCouldnt_Kill & sApp & " ... " & GetTime() 
+            sMessage = sCouldnt_Kill & sApp & " ... " 
+            sMessage = AddTime(sMessage)
           Endif
           
           Shell "exec " & chk.Text
@@ -635,7 +650,8 @@ Public Sub timerReload_Timer()
           
         Endif
         
-        sMessage = "VPN connection lost .. probably lost internet connection .. quitting VPN Lifegaurd ... " & GetTime() 
+        sMessage = "VPN connection lost .. probably lost internet connection .. quitting VPN Lifegaurd ... " 
+        sMessage = AddTime(sMessage)
         WriteToLogFile("Append", sMessage)
         sCommand = "notify-send " & "'" & sMessage & "'"
         Shell sCommand
@@ -677,17 +693,23 @@ Public Sub WriteToLogFile(sMode As String, sMessage As String)
     
   Endif
   
+ ' Dim curr_time As String = GetTime()
+  'Message("curr_time = " & curr_time)
+  'Wait 1
+  Sleep 0.1 
+  Dim msg As String = sMessage
+  
   If sMode = "Initialize" Then 
     
       ' Keep last 200 lines of log file
       command = "tail -n 200 " & FileName 
       Shell command To last_lines
       WriteToFile(FileName, last_lines)
-      AppendToFile(FileName, sMessage)
+      AppendToFile(FileName, msg)
     
   Else 
     
-    AppendToFile(FileName, sMessage)
+    AppendToFile(FileName, msg)
     
   Endif
   
@@ -698,7 +720,7 @@ Public Sub WriteToFile(FileName As String, sMessage As String)
   Dim hFile As File
   
   hFile = Open FileName For Create
-  CheckForNewline(sMessage)
+  sMessage = CheckForNewline(sMessage)
   'sMessage &= "\n"
   Write #hFile, sMessage
   
@@ -709,17 +731,19 @@ Public Sub AppendToFile(FileName As String, sMessage As String)
   Dim hFile As File
   
   hFile = Open FileName For Append
-  CheckForNewline(sMessage)
+  sMessage = CheckForNewline(sMessage)
   'sMessage &= "\n"
   Write #hFile, sMessage
   
 End
 
-Public Sub CheckForNewline(sMessage As String)
+Public Function CheckForNewline(sMessage As String) As String
   
   If Not InStr(NL, sMessage) Then
     sMessage &= NL
   Endif
+  
+  Return sMessage
   
 End
 
@@ -838,7 +862,8 @@ Private Sub KillApplis()
           
           TimeEnd = GetCurrentTime()
           TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
-          sMessage = "Connection lost ... killed " & chk.Text & " .... number of attempts = " & Str$(Kill_Attempts) & " ... time exposed = " & Str$(TimeExposed) & " seconds ... " & GetTime() 
+          sMessage = "Connection lost ... killed " & chk.Text & " .... number of attempts = " & Str$(Kill_Attempts) & " ... time exposed = " & Str$(TimeExposed) & " seconds" 
+          sMessage = AddTime(sMessage)
           WriteToLogFile("Append", sMessage)
           Apps_Killed = True
           Break
@@ -847,7 +872,8 @@ Private Sub KillApplis()
           
           TimeEnd = GetCurrentTime()
           TimeExposed = GetTimeElapsed(TimeStart, TimeEnd)
-          sMessage = "Connection lost ... couldn't kill " & chk.Text & " ... number of attempts = 4 ... time exposed = " & Str$(TimeExposed) & " seconds ... " & GetTime()
+          sMessage = "Connection lost ... couldn't kill " & chk.Text & " ... number of attempts = 4 ... time exposed = " & Str$(TimeExposed) & " seconds" 
+          sMessage = AddTime(sMessage)
           WriteToLogFile("Append", sMessage)
           
         Endif
