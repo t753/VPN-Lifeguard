@@ -67,38 +67,5 @@ Class GlobalVar
     Public Shared WindowsVPNConnectionType As String = "Automatic"
     Public Shared WindowsVPN_CredentialsSet As Boolean = False
 
-    '<DllImport("kernel32")>
-    'Public Shared Function GetPrivateProfileString(ByVal section As String, ByVal key As String, ByVal def As String, ByVal retVal As StringBuilder, ByVal size As Integer, ByVal filePath As String) As Integer
-    'End Function
-
-    '<DllImport("kernel32")>
-    'Public Shared Function WritePrivateProfileString(ByVal lpApplicationName As String, ByVal lpKeyName As IntPtr, ByVal lpString As String, ByVal lpFileName As String) As Integer
-    'End Function
-
-    'Public Function WriteINI(ByRef Entete As String, ByRef Variable As String, ByRef Valeur As String) As String
-    '    Dim Fichier As String
-
-    '    On Error Resume Next
-
-    '    Fichier = Application.StartupPath & "\" & My.Application.Info.Title & ".ini"
-    '    EcrireINI = CStr(WritePrivateProfileString(Entete, Variable, Valeur, Fichier))
-
-    '    On Error GoTo 0
-    'End Function
-
-    'Public Function ReadINI(ByRef Entete As String, ByRef Variable As String, Optional ByRef Fichier As String = vbNullString) As String
-    '    Dim Retour As String
-
-    '    On Error Resume Next
-
-    '    If Fichier = vbNullString Then
-    '        Fichier = Application.StartupPath & "\" & My.Application.Info.Title & ".ini"
-    '    End If
-    '    Retour = New String(Chr(0), 255)
-    '    LireINI = Left(Retour, GetPrivateProfileString(Entete, Variable, "", Retour, Len(Retour), Fichier))
-
-    '    On Error GoTo 0
-    'End Function
-
 End Class
 'End Namespace
