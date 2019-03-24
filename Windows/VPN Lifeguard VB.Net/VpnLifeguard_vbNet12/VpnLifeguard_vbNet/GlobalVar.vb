@@ -44,6 +44,8 @@ Class GlobalVar
     Public Shared DisconnectionHandled = False
     Public Shared ApplicationsStarted = False
     Public Shared OpenVPNDialogMode As String = ""
+    Public Shared OpenVPNConfigFolderFound As Boolean = False
+    Public Shared VerifyOpenVPNTries As Integer = 0
 
     ' INI variables
     Public Shared ConnectToLastOpenVPNServer As Boolean = False

@@ -67,10 +67,17 @@ Public Class clsMainMethods
         Dim param As String = ""
 
         If mode = "Start" Then
-            If Not GlobalVar.ConnectToLastOpenVPNServer Or GlobalVar.OpenVPN_ServerName = "" Or GlobalVar.OpenVPN_ServerName = "None" Then
+            If Not GlobalVar.ConnectToLastOpenVPNServer Then ' Or GlobalVar.OpenVPN_ServerName = "" Or GlobalVar.OpenVPN_ServerName = "None" Then
                 GlobalVar.OpenVPNDialogMode = "Runtime"
                 Dim dlgovpn As New dlgOpenVPN
+                'MessageBox.Show("Here 1 ...")
                 dlgovpn.ShowDialog()
+                'MessageBox.Show("Here 2 ...")
+
+                If Not GlobalVar.OpenVPNConfigFolderFound Then
+                    MessageBox.Show("Can't find OpenVPN Config folder. Exiting connection attempt.")
+                    Exit Sub
+                End If
             End If
         End If
 
@@ -104,9 +111,17 @@ Public Class clsMainMethods
             param = GlobalVar.ConnectionNameToAutomaticallyRun
         End If
 
+        'MessageBox.Show("param = " & param)
+
         If param <> "" And param <> "None" Then
 
             command = Application.StartupPath & "/OpenVPN_Disconnect.bat"
+            Dim wait As Boolean = True
+            ProcessExec(command, param, wait)
+
+        Else
+
+            command = Application.StartupPath & "/OpenVPN_Kill.bat"
             Dim wait As Boolean = True
             ProcessExec(command, param, wait)
 
@@ -199,17 +214,46 @@ Public Class clsMainMethods
 
     Function VerifyOpenVPN(ByRef vpn_list As List(Of VPN)) As Boolean
 
+Retry:
+
         Dim dir_exists As Boolean = False
 
         If Directory.Exists(GlobalVar.OpenVPN_ConfigDir) Then
             dir_exists = True
+            GlobalVar.OpenVPNConfigFolderFound = True
+            GlobalVar.VerifyOpenVPNTries = 0
         End If
 
-        If dir_exists = False Then
+        If Not dir_exists Then
+
+            GlobalVar.OpenVPNConfigFolderFound = False
+
+            If GlobalVar.VerifyOpenVPNTries = 0 Then
+                MsgBox("The OpenVPN Config folder doesn't exist. Set it with the Config button.", MsgBoxStyle.Exclamation)
+            End If
+
             EditOpenVPN_List(vpn_list)
+
+            GlobalVar.VerifyOpenVPNTries += 1
+
+            'Dim result As Integer = MessageBox.Show("Select Yes to find the OpenVPN Config folder where the server files are.", "Find OpenVPN Config folder?", MessageBoxButtons.YesNo)
+
+            'If result = DialogResult.No Then
+            '    GlobalVar.OpenVPNConfigFolderFound = False
+            '    EditOpenVPN_List(vpn_list)
+            '    Return dir_exists
+            '    'MessageBox.Show("No pressed")
+            'ElseIf result = DialogResult.Yes Then
+            '    MessageBox.Show("Yes")
+            '    Dim dCfg = New dlgConfig
+            '    dCfg.FindOpenVPNConfigFolder()
+            '    GoTo Retry
+            '    ' MessageBox.Show("Yes pressed")
+            'End If
+
         End If
 
-        Return dir_exists
+            Return dir_exists
 
     End Function
 

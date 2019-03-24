@@ -29,12 +29,22 @@ Public Class dlgOpenVPN
             GlobalVar.ConnectionNameToAutomaticallyRun = ""
         End If
 
+Retry:
+
         sFilenames = Directory.GetFiles(OpenVPN_ConfigDir, "*.ovpn") '.Select(Function(f) IO.Path.GetFileNameWithoutExtension(f)))
 
         If sFilenames.Count = 0 Then
-            MsgBox("No vpn server files exist in  the OpenVPN Config folder.", MsgBoxStyle.Exclamation)
-            Exit Sub
+
+            MsgBox("No vpn server files exist in  the OpenVPN Config folder. Set the OpenVpn Config folder in Config. Exiting connection attempt.", MsgBoxStyle.Exclamation)
+
+            GlobalVar.OpenVPNConfigFolderFound = False
+
+            Me.Close()
+
         Else
+
+            GlobalVar.OpenVPNConfigFolderFound = True
+
             For Each fi_name In sFilenames
                 shortname = GetShortFilename(fi_name)
                 LstBoxOpenVPNServers.Items.Add(shortname)

@@ -345,8 +345,9 @@ Retry:
                 End If
             End If
             Timer1_Enabled = False
-            TimerActive = False
+
         End If
+        TimerActive = False
 
     End Sub
 
@@ -768,14 +769,14 @@ EndSub:
 
         Dim connection_mode As String = ""
 
-        GlobalVar.UpdateCount = 0
-
         If GlobalVar.AdapterTypeToAutomaticallyRun <> "None" Then
             connection_mode = "Init"
         Else
             connection_mode = "Start"
         End If
 Retry:
+        GlobalVar.UpdateCount = 0
+
         If Not TimerActive Then
 
             GlobalVar.ConnectionMode = "Start"

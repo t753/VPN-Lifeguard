@@ -49,6 +49,13 @@ Public Class dlgConfig
 
     Private Sub BtnOpenVPNConfigFolder_Click(sender As Object, e As EventArgs) Handles BtnOpenVPNConfigFolder.Click
 
+        FindOpenVPNConfigFolder()
+
+    End Sub
+
+    Public Sub FindOpenVPNConfigFolder()
+
+        Dim sFilenames As String()
         Dim folderDlg As New FolderBrowserDialog
 
         'folderDlg.RootFolder = "C:\Program Files\OpenVPN\config\"
@@ -62,9 +69,26 @@ Public Class dlgConfig
 
             GlobalVar.OpenVPN_ConfigDir = folderDlg.SelectedPath
 
+            sFilenames = Directory.GetFiles(GlobalVar.OpenVPN_ConfigDir, "*.ovpn") '.Select(Function(f) IO.Path.GetFileNameWithoutExtension(f)))
+
+            If sFilenames.Count = 0 Then
+
+                MsgBox("No vpn server files exist in  the selected OpenVPN Config folder.", MsgBoxStyle.Exclamation)
+
+                GlobalVar.OpenVPNConfigFolderFound = False
+
+                'Me.Close()
+
+            Else
+
+                GlobalVar.OpenVPNConfigFolderFound = True
+
+            End If
+
             'Dim root As Environment.SpecialFolder = folderDlg.RootFolder
 
         End If
+
     End Sub
 
     Private Sub ComboBox1_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ComboBox1.SelectedIndexChanged
