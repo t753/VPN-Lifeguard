@@ -234,6 +234,13 @@ Public Class dlgConfig
         Else
             GlobalVar.MinimizeInsteadOfQuit = False
         End If
+
+        If GlobalVar.MinimizeInsteadOfQuit Then
+            GlobalVar.CloseAllowed = False
+        Else
+            GlobalVar.CloseAllowed = True
+        End If
+
         If chkCloseApplicationsManagedOnExit.Checked Then
             GlobalVar.CloseApplicationsManagedOnExit = True
         Else

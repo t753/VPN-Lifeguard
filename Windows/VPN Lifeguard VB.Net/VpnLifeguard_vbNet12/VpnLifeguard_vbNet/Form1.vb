@@ -40,7 +40,7 @@ Public Class frmMain
         fc.ReadINI()
 
         ' CloseAllowed used in FormClosing method
-        If GlobalVar.MinimizeInsteadOfQuit Then 'And GlobalVar.MinimizeToTrayOnStartup Then
+        If GlobalVar.MinimizeInsteadOfQuit Then
             GlobalVar.CloseAllowed = False
         Else
             GlobalVar.CloseAllowed = True
