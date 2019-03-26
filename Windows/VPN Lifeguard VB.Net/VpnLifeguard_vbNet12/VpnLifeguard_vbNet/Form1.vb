@@ -18,6 +18,9 @@ Public Class frmMain
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Dim fmm As New clsMainMethods
 
+        ' InitGlobalVar could be done in LaucnApp
+        ' LauchApp is starting place for either
+        ' start as tray app or Form app
         If Not GlobalVar.InitGlobalVarDone Then
             InitGlobalVar()
         End If
@@ -31,9 +34,12 @@ Public Class frmMain
 
         Dim fc As New dlgConfig
 
+        ' Initialize paths and files if first run
         fc.InitPaths()
+        ' Read INI settings in app INI in Startup folder
         fc.ReadINI()
 
+        ' CloseAllowed used in FormClosing method
         If GlobalVar.MinimizeInsteadOfQuit Then 'And GlobalVar.MinimizeToTrayOnStartup Then
             GlobalVar.CloseAllowed = False
         Else
@@ -50,7 +56,7 @@ Public Class frmMain
 
         GlobalVar.CurrentActiveVPN = New VPN
 
-        ' Initialize tray icon
+        ' Initialize tray icon if not lauch as tray app
         If Not GlobalVar.AppContextUsed Then
             InitTray()
             GlobalVar.AppContextUsed = True
@@ -60,7 +66,9 @@ Public Class frmMain
         Timer1.Interval = 1000
         Timer1.Enabled = True
 
-        ' Connection IP Address Connection Monitoring
+        ' Connection Current Connection Monitoring
+        ' If lost connection, kill apps, restart connection,
+        ' and restart apps
         Timer2.Interval = 600
         Timer2.Enabled = True
 
@@ -74,6 +82,7 @@ Public Class frmMain
 
     Public Sub InitTray()
 
+        ' Set tray icon
         context = New AppContext(Me)
 
         'Dim UseTray As Boolean = GlobalVar.MinimizeToTrayOnStartup
@@ -107,6 +116,9 @@ Public Class frmMain
 
     Private Sub frmMain_FormClosing(ByVal sender As Object, ByVal e As FormClosingEventArgs) Handles Me.FormClosing
 
+        ' Method: triggered on form closing event
+
+        ' See if need to reduce app to tray instead of closing
         If Not GlobalVar.CloseAllowed Then
 
             Me.Hide()
@@ -127,32 +139,48 @@ Public Class frmMain
 
     Public Sub AppClose()
 
+        ' Method: Close app ... can be to tray or complete exit
+
+        ' If not reduce to tray, then exit app
         If GlobalVar.CloseAllowed Then
+            If Not GlobalVar.ExitDone Then
+                GlobalVar.ConnectionMode = "Stop"
 
-            GlobalVar.ConnectionMode = "Stop"
+                If GlobalVar.CloseApplicationsManagedOnExit Then
+                    'MessageBox.Show("Kill applications on quit ...")
+                    Try
+                        KillApplications()
+                    Catch ex As Exception
+                        MessageBox.Show("Error kill applications on quit: " & ex.ToString())
+                    End Try
 
-            If GlobalVar.CloseApplicationsManagedOnExit Then
-                KillApplications()
+                Else
+
+                    GlobalVar.CloseManagedApps = False
+
+                End If
+
+                Dim t As New Thread(Sub()
+                                        Disconnect("Exit")
+                                    End Sub)
+                t.Start()
+                While t.IsAlive
+                    wait(1)
+                End While
+
+                If GlobalVar.DisconnectsToLog Then
+                    WriteToLog("Application Quit")
+                End If
+
+                NotifyIcon1.Visible = False
+
+                GlobalVar.ExitDone = True
+                Application.Exit()
             End If
-
-            Dim t As New Thread(Sub()
-                                    Disconnect("Exit")
-                                End Sub)
-            t.Start()
-            While t.IsAlive
-                wait(1)
-            End While
-
-            If GlobalVar.DisconnectsToLog Then
-                WriteToLog("Application Quit")
-            End If
-
-            NotifyIcon1.Visible = False
-
-            Application.Exit()
 
         Else
 
+            ' Reduce app to tray
             Me.Close()
 
         End If
@@ -160,6 +188,8 @@ Public Class frmMain
     End Sub
 
     Public Sub UpdateInit()
+
+        ' Method initializes runtime variables used in UpdateForm method
 
         Dim fmm As New clsMainMethods
 
@@ -179,6 +209,7 @@ Retry:
             GoTo Retry
         End If
 
+        ' Get all VPNs and their statuses to update list on main Form
         fmm.CompleteVPNList(Me)
 
     End Sub
@@ -190,6 +221,8 @@ Retry:
         Dim multiple_actives As Integer = 0
         Dim vpn As New VPN
 
+        ' Update main Form check boxes for apps if Config was done
+        ' Config can change the list of Applications to manage
         If GlobalVar.ConfigChange Then
 
             UpdateAppChkBoxes()
@@ -197,8 +230,9 @@ Retry:
 
         End If
 
-        GlobalVar.InitList = True
+        'GlobalVar.InitList = True
 
+        ' Update VPNs list and their statuses
         Dim t As New Thread(Sub()
                                 UpdateInit()
                             End Sub)
@@ -213,19 +247,25 @@ Retry:
 
         multiple_actives = fmm.GetActiveVPNs()
 
+
         If multiple_actives > 1 Then
+            ' More than 1 VPN active connection was found
 
             If GlobalVar.NumNoConnMsg = 0 Then
                 MessageBox.Show("You have more than 1 active VPN connection." & vbCrLf & vbCrLf & "You should disconnect all but 1.")
             End If
             GlobalVar.NumNoConnMsg += 1
 
+
         ElseIf multiple_actives = 0 Then
+            ' No  VPN active connection was found
 
             GlobalVar.NumNoConnMsg = 0
             'MessageBox.Show("You have no active VPN connections.")
 
         ElseIf multiple_actives = 1 Then
+            ' Only 1 VPN active connection was found
+            ' This is the connection we want to monitor with the app
 
             GlobalVar.NumNoConnMsg = 0
 
@@ -242,6 +282,7 @@ Retry:
 
         End If
 
+        ' If connect on startup, make initial connection
         If Not GlobalVar.InitConnection Then
             If Not GlobalVar.CurrentlyConnected Then
                 If GlobalVar.ConnectOnStartup Then
@@ -263,28 +304,19 @@ Retry:
             End If
         End If
 
+        ' Start managed applications
         If GlobalVar.RunManagedApplications Or GlobalVar.StartApplications Or GlobalVar.ConnectionMode = "Start" Then
             If GlobalVar.ActiveVPN_List.Count <> 0 Then
                 If GlobalVar.CurrentlyConnected Then
                     If Not GlobalVar.ApplicationsStarted Then
                         StartApplications()
                         'GlobalVar.DisconnectionHandled = False
-                    Else
-                        'MessageBox.Show("Here 1 ...")
                     End If
-                Else
-                    'MessageBox.Show("Here 2 ...")
                 End If
-            Else
-                'MessageBox.Show("Here 3 ...")
             End If
-        Else
-            'MessageBox.Show("Here 4 ...")
         End If
 
-
-
-
+        ' Update status labels on main Form
         If GlobalVar.CurrentlyConnected Then
             lblStatus.Text = "Connected "
             lblOpInProgress.Text = "Connected"
@@ -300,15 +332,14 @@ Retry:
 
     Private Sub Timer1_Tick(ByVal sender As Object, ByVal e As System.EventArgs) Handles Timer1.Tick
 
-        'If Not GlobalVar.InitTray Then
-        'InitTray()
-        'GlobalVar.InitTray = True
-        'End If
+        ' Method: Used to update VPN list on main Form
+
         If GlobalVar.CurrentlyConnected Then
             Timer1.Interval = 5000
         Else
             Timer1.Interval = 10000
         End If
+
         TimerActive = True
 
         If Not Timer1_Enabled Then
@@ -353,6 +384,9 @@ Retry:
 
     Private Sub Timer2_Tick(ByVal sender As Object, ByVal e As System.EventArgs) Handles Timer2.Tick
 
+        ' Method: used to monitor current VPN connection
+        ' If connection lost: kill managed apps, re-connect VPN, and restart managed apps
+
         Dim fmm As New clsMainMethods
         Dim vpnCheck = New clsWindowsVPN
         Dim vpn_type As String
@@ -368,7 +402,7 @@ Retry:
         If Not Timer2_Enabled Then
             Timer2_Enabled = True
             If Not GlobalVar.ConfigInProgress Then
-                GlobalVar.NumConnMsg += 1
+                ' GlobalVar.NumConnMsg += 1
                 If Not Timer1_Enabled Then
                     Try
                         If GlobalVar.CurrentlyConnected Then
@@ -395,7 +429,10 @@ Retry:
                                             lblStatus.Text = "Service stopped"
 
                                             GlobalVar.DisconnectionHandled = True
+
+                                            ' Kill managed apps, re-connect VPN, and restart managed apps
                                             HandleDisconnection()
+
                                             GlobalVar.DisconnectionHandled = False
 
                                         End If
@@ -420,13 +457,17 @@ Retry:
     End Sub
 
     Public Sub WriteToLog(inputString As String)
+
         Dim date_time As String = DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss")
         Dim path As String = GlobalVar.LogFilePath
-        My.Computer.FileSystem.WriteAllText(
-          path, date_time & "  " & inputString & vbCrLf, True)
+        My.Computer.FileSystem.WriteAllText(path, date_time & "  " & inputString & vbCrLf, True)
+
     End Sub
 
     Public Sub HandleDisconnection()
+
+        ' Method: Kills managed apps, re-connects VPN, and restarts managed apps
+        ' Managed apps restarted in UpdateForm
 
         If GlobalVar.DisconnectsToLog Then
             WriteToLog("Connection Lost And Applications Killed")
@@ -449,9 +490,9 @@ Retry:
 
     End Sub
 
-
-
     Public Sub RestartService()
+
+        ' Method: re-connect VPN
 
 Retry:
         If Not TimerActive Then
@@ -490,6 +531,7 @@ Retry:
 
     Private Sub BtnConnect_Click(sender As Object, e As EventArgs) Handles BtnConnect.Click
 
+        ' Method: make VPN connection
 Retry:
         If Not TimerActive Then
             Dim t As New Thread(Sub()
@@ -508,6 +550,7 @@ Retry:
 
     Public Sub MakeConnection(mode As String)
 
+        ' Method: make VPN connection
 
         If Not GlobalVar.CurrentlyConnected Then
             GlobalVar.OperationInProgress = True
@@ -515,7 +558,6 @@ Retry:
             GlobalVar.UpdateCount = 0
             GlobalVar.CurrentlyConnected = False
             Dim conName As String = GlobalVar.CurrentActiveVPN.name
-            lblOpInProgress.Text = "Connecting ..."
 
             If mode = "Init" Then
                 conName = GlobalVar.ConnectionNameToAutomaticallyRun
@@ -539,6 +581,8 @@ Retry:
                     Exit Sub
                 End If
             End If
+
+            lblOpInProgress.Text = "Connecting ..."
 
             Dim vpn As VPN
             Dim fmm As New clsMainMethods
@@ -628,6 +672,9 @@ ExitSub:
     End Sub
 
     Public Sub CredentialsReset()
+
+        ' Method: Set global var to re-set Windows VPN credentials
+
         Dim result As MsgBoxResult = Nothing
         Dim resStr As String = ""
 
@@ -643,11 +690,16 @@ ExitSub:
     End Sub
 
     Public Sub GetVPN_Credentials()
+
+        ' Method: Get and set Windows VPN credentials to use 
+        ' in Automatic mode (set in Config)
+
         Dim dlgSC As New dlgSetCredentials
         dlgSC.ShowDialog()
     End Sub
 
     Private Sub wait(ByVal hundrethseconds As Integer)
+
         'wait_time = 0
         For i As Integer = 1 To hundrethseconds * 1
             System.Threading.Thread.Sleep(10)
@@ -664,6 +716,8 @@ ExitSub:
     End Sub
 
     Private Sub BtnDisconnect_Click(sender As Object, e As EventArgs) Handles BtnDisconnect.Click
+
+        ' Method: disconnect current VPN connection
 
 Retry:
         If Not TimerActive Then
@@ -682,6 +736,8 @@ Retry:
     End Sub
 
     Public Sub Disconnect(mode As String)
+
+        ' Method: disconnect current VPN connection and kill managed applications
 
         GlobalVar.OperationInProgress = True
 
@@ -717,7 +773,7 @@ Retry:
             Dim vpn As VPN
             Dim fmm As New clsMainMethods
 
-            If GlobalVar.ApplicationsStarted Then
+            If GlobalVar.ApplicationsStarted And GlobalVar.CloseManagedApps Then
                 KillApplications()
             End If
 
@@ -761,11 +817,10 @@ EndSub:
 
     End Sub
 
-    Private Sub BtnMonitor_Click(sender As Object, e As EventArgs)
-
-    End Sub
-
     Private Sub BtnStart_Click(sender As Object, e As EventArgs) Handles BtnStart.Click
+
+        ' Method: connect VPN and set boolean to start managed applications
+        ' in UpdateForm in next Timer1_Tick
 
         Dim connection_mode As String = ""
 
@@ -799,6 +854,9 @@ Retry:
 
     Private Sub BtnStop_Click(sender As Object, e As EventArgs) Handles BtnStop.Click
 
+        ' Method: disconnect current VPN connection and set boolean 
+        ' so managed applications won't be started in UpdateForm in Timer1_Tick
+
         GlobalVar.UpdateCount = 0
 Retry:
         If Not TimerActive Then
@@ -816,7 +874,7 @@ Retry:
 
             Catch ex As Exception
 
-                MessageBox.Show("Error o n Stop: ex = " & ex.ToString())
+                MessageBox.Show("Error on Stop: ex = " & ex.ToString())
 
             End Try
 
@@ -829,12 +887,18 @@ Retry:
     End Sub
 
     Private Sub BtnConfig_Click(sender As Object, e As EventArgs) Handles BtnConfig.Click
+
+        ' Method: show Config dialog form
+
         Dim dlgCF As New dlgConfig
         dlgCF.ShowDialog()
 
     End Sub
 
     Private Sub BtnAbout_Click(sender As Object, e As EventArgs) Handles BtnAbout.Click
+
+        ' Method: show About form
+
         Dim fAbout As New frmAbout
         fAbout.ShowDialog()
 
@@ -842,11 +906,16 @@ Retry:
 
     Private Sub BtnExit_Click(sender As Object, e As EventArgs) Handles BtnExit.Click
 
+        ' Method: Close app ... can be to tray or complete exit
+
         AppClose()
 
     End Sub
 
     Public Sub UpdateAppChkBoxes()
+
+        ' Method: Update managed app checkboxes according to global
+        ' managed applications list
 
         Dim str As String = ""
         Dim i As Integer = 0
@@ -890,6 +959,8 @@ Retry:
 
     Public Sub InitAppChkBoxes()
 
+        ' Method: Initialize managed app checkboxes
+
         Dim str As String = ""
         Dim i As Integer = 0
 
@@ -928,6 +999,8 @@ Retry:
     End Sub
 
     Public Function GetCheckedApps() As List(Of String)
+
+        ' Method: Return list of checked managed apps to see what applications to start
 
         Dim checkedApps As New List(Of String)
         Dim i As Integer = 0
@@ -988,11 +1061,17 @@ Retry:
 
 
     Public Function GetShortFilename(filename As String) As String
+
+        ' Method: Used to get just application to manage name minus .exe and path
+
         Dim result As String = Path.GetFileNameWithoutExtension(filename)
         Return result
+
     End Function
 
     Public Sub StartApplications()
+
+        ' Method: Start managed applications
 
         Dim checkedApps As New List(Of String)
         Dim param As String = ""
@@ -1022,6 +1101,8 @@ Retry:
 
     Public Sub KillApplications()
 
+        ' Method: Kill managed applications
+
         If GlobalVar.ApplicationsStarted Then
 
             GlobalVar.UpdateCount = 0
@@ -1042,6 +1123,8 @@ Retry:
 
     Public Sub ProcessExec(processarg As String, param1 As String, wait As Boolean)
 
+        ' Method: start managed application
+
         ' Start the child process.
         Dim p As New ProcessStartInfo
         ' Redirect the output stream of the child process.
@@ -1061,6 +1144,9 @@ Retry:
 
 
     Private Function CheckIfRunning(pName As String) As Boolean
+
+        ' Method: Check if managed application is already running
+        ' If so, add to global monitored processes list
 
         Dim bRet As Boolean = False
 
@@ -1104,6 +1190,9 @@ Retry:
     'End Function
 
     Function GetExternalIP() As String
+
+        ' Method: get and return external IP address of current VPN connection 
+
         '  Function GetExternalIP() As IPAddress
         Dim lol As WebClient = New WebClient()
         Dim baseurl As String = "http://checkip.dyndns.org/"
@@ -1160,6 +1249,7 @@ Retry:
 
     Public Sub ExitApp()
 
+        ' Set boolean to allow exiting app instead of minimize to tray
         GlobalVar.CloseAllowed = True
 
         AppClose()

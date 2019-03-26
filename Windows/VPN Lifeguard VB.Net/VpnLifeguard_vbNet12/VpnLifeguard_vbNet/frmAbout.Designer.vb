@@ -36,7 +36,7 @@ Partial Class frmAbout
         Me.Label1.Name = "Label1"
         Me.Label1.Size = New System.Drawing.Size(292, 24)
         Me.Label1.TabIndex = 0
-        Me.Label1.Text = "VPN Lifeguard VB.Net version 1.5"
+        Me.Label1.Text = "VPN Lifeguard VB.Net version 1.6"
         '
         'Label2
         '

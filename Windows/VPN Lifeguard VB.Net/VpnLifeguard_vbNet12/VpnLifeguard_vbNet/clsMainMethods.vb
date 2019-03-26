@@ -212,50 +212,29 @@ Public Class clsMainMethods
 
     End Sub
 
-    Function VerifyOpenVPN(ByRef vpn_list As List(Of VPN)) As Boolean
+    Public Sub VerifyOpenVPN(ByRef vpn_list As List(Of VPN))
 
-Retry:
-
-        Dim dir_exists As Boolean = False
+        Dim sFilenames As String()
 
         If Directory.Exists(GlobalVar.OpenVPN_ConfigDir) Then
-            dir_exists = True
-            GlobalVar.OpenVPNConfigFolderFound = True
-            GlobalVar.VerifyOpenVPNTries = 0
-        End If
 
-        If Not dir_exists Then
+            sFilenames = Directory.GetFiles(GlobalVar.OpenVPN_ConfigDir, "*.ovpn")
 
-            GlobalVar.OpenVPNConfigFolderFound = False
+            If sFilenames.Count = 0 Then
 
-            If GlobalVar.VerifyOpenVPNTries = 0 Then
-                MsgBox("The OpenVPN Config folder doesn't exist. Set it with the Config button.", MsgBoxStyle.Exclamation)
+                If GlobalVar.VerifyOpenVPNTries = 0 Then
+                    MsgBox("No vpn server files exist in  the OpenVPN Config folder. Set the OpenVpn Config folder in Config. Marking connection as non-OpenVPN", MsgBoxStyle.Exclamation)
+                End If
+
+                GlobalVar.OpenVPNConfigFolderFound = False
+                EditOpenVPN_List(vpn_list)
+                GlobalVar.VerifyOpenVPNTries += 1
+
             End If
 
-            EditOpenVPN_List(vpn_list)
-
-            GlobalVar.VerifyOpenVPNTries += 1
-
-            'Dim result As Integer = MessageBox.Show("Select Yes to find the OpenVPN Config folder where the server files are.", "Find OpenVPN Config folder?", MessageBoxButtons.YesNo)
-
-            'If result = DialogResult.No Then
-            '    GlobalVar.OpenVPNConfigFolderFound = False
-            '    EditOpenVPN_List(vpn_list)
-            '    Return dir_exists
-            '    'MessageBox.Show("No pressed")
-            'ElseIf result = DialogResult.Yes Then
-            '    MessageBox.Show("Yes")
-            '    Dim dCfg = New dlgConfig
-            '    dCfg.FindOpenVPNConfigFolder()
-            '    GoTo Retry
-            '    ' MessageBox.Show("Yes pressed")
-            'End If
-
         End If
 
-            Return dir_exists
-
-    End Function
+    End Sub
 
     Public Sub EditOpenVPN_List(ByRef vpn_list As List(Of VPN))
 
@@ -334,16 +313,16 @@ Retry:
                         vpn.status = "Active"
 
                         Try
-                            Dim t As New Thread(Sub()
-                                                    conIPstr = GetExternalIp4()
-                                                End Sub)
-                            t.Start()
-                            While t.IsAlive
-                                wait(1)
-                            End While
+                            'Dim t As New Thread(Sub()
+                            conIPstr = GetExternalIp4()
+                            '                     End Sub)
+                            ' t.Start()
+                            ' While t.IsAlive
+                            ' wait(1)
+                            ' End While
 
                         Catch e As Exception
-                            MessageBox.Show("Error: Function GetExternalIP: Error returning IP Address" & vbCrLf & vbCrLf & e.Message)
+                            MessageBox.Show("Error: Function GetOpenVPNs: Error returning IP Address" & vbCrLf & vbCrLf & e.Message)
                         End Try
                         vpn.ip = conIPstr
 
@@ -420,16 +399,16 @@ Retry:
                 vpn.status = "Active"
 
                 Try
-                    Dim t As New Thread(Sub()
-                                            conIPstr = GetExternalIp4()
-                                        End Sub)
-                    t.Start()
-                    While t.IsAlive
-                        wait(1)
-                    End While
+                    'Dim t As New Thread(Sub()
+                    conIPstr = GetExternalIp4()
+                    '                    End Sub)
+                    't.Start()
+                    ' While t.IsAlive
+                    ' wait(1)
+                    ' End While
 
                 Catch e As Exception
-                    MessageBox.Show("Error: Function GetConnectionList: Error returning IP Address" & vbCrLf & vbCrLf & e.Message)
+                    MessageBox.Show("Error: Function GetWindowsVPNs: Error returning IP Address" & vbCrLf & vbCrLf & e.Message)
                 End Try
                 vpn.ip = conIPstr
 

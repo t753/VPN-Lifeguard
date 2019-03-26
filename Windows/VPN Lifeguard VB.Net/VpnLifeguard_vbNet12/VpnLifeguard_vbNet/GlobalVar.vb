@@ -27,8 +27,8 @@ Class GlobalVar
     Public Shared CloseAllowed = False
     Public Shared UpdateCount As Integer = 0
     Public Shared InitIni As Boolean = True
-    Public Shared ActiveVPNCount As Integer = 0
-    Public Shared InitList As Boolean = False
+    'Public Shared ActiveVPNCount As Integer = 0
+    'Public Shared InitList As Boolean = False
     Public Shared ConfigChange As Boolean = True
     Public Shared InitConnection As Boolean = False
     Public Shared ConnectionMode As String = "Stop"
@@ -36,7 +36,7 @@ Class GlobalVar
     Public Shared StartApplications As Boolean = False
     Public Shared OperationInProgress As Boolean = False
     Public Shared CurrentActiveVPN As VPN
-    Public Shared NumConnMsg As Integer = 0
+    'Public Shared NumConnMsg As Integer = 0
     Public Shared NumNoConnMsg As Integer = 0
     Public Shared WindowsVPN_UserName As String = ""
     Public Shared WindowsVPN_Password As String = ""
@@ -46,6 +46,8 @@ Class GlobalVar
     Public Shared OpenVPNDialogMode As String = ""
     Public Shared OpenVPNConfigFolderFound As Boolean = False
     Public Shared VerifyOpenVPNTries As Integer = 0
+    Public Shared ExitDone As Boolean = False
+    Public Shared CloseManagedApps As Boolean = True
 
     ' INI variables
     Public Shared ConnectToLastOpenVPNServer As Boolean = False
