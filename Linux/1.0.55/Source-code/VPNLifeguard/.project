@@ -1,8 +1,7 @@
 # Gambas Project File 3.0
-# Compiled with Gambas 3.8.4
 Title=VPN Lifeguard for Linux
 Startup=FMain
-Version=1.0.2
+Version=1.0.58
 Component=gb.image
 Component=gb.gtk3
 Component=gb.form
@@ -11,11 +10,11 @@ Description="Protect your privacy while VPN disconnect"
 Authors="Philippe734"
 TabSize=2
 Language=en_US
-Maintainer=Philippe734
+Maintainer=t753
 Address=x
-Url=https://sourceforge.net/projects/vpnlifeguard/
+Url=https://github.com/t753/VPN-Lifeguard
 License=General Public License
-PackageName=gbvpnlifeguard-1.0.2
+PackageName=vpnlifeguard-1.0.58
 Packager=1
 Systems=ubuntu
 SameDependencies=1
