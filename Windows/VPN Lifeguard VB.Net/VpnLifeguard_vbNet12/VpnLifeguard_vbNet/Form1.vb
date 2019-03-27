@@ -360,7 +360,7 @@ Retry:
                             wait(1)
                         End While
 
-                    ElseIf GlobalVar.CurrentlyConnected And GlobalVar.UpdateCount <= 15 Then
+                    ElseIf GlobalVar.CurrentlyConnected And GlobalVar.UpdateCount <= 100 Then
 
                         GlobalVar.UpdateCount += 1
 
