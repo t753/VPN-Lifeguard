@@ -58,11 +58,11 @@ Partial Class frmMain
         Me.OpenLogFileToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.OpenINIFileToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ExitToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ClearLogFileToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.HelpToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.AboutToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.GoToWebsiteToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.NotifyIcon1 = New System.Windows.Forms.NotifyIcon(Me.components)
-        Me.ClearLogFileToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.Panel1.SuspendLayout()
         Me.Panel2.SuspendLayout()
         Me.MenuStrip1.SuspendLayout()
@@ -356,20 +356,26 @@ Partial Class frmMain
         'OpenLogFileToolStripMenuItem
         '
         Me.OpenLogFileToolStripMenuItem.Name = "OpenLogFileToolStripMenuItem"
-        Me.OpenLogFileToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.OpenLogFileToolStripMenuItem.Size = New System.Drawing.Size(147, 22)
         Me.OpenLogFileToolStripMenuItem.Text = "Open Log File"
         '
         'OpenINIFileToolStripMenuItem
         '
         Me.OpenINIFileToolStripMenuItem.Name = "OpenINIFileToolStripMenuItem"
-        Me.OpenINIFileToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.OpenINIFileToolStripMenuItem.Size = New System.Drawing.Size(147, 22)
         Me.OpenINIFileToolStripMenuItem.Text = "Open INI File"
         '
         'ExitToolStripMenuItem
         '
         Me.ExitToolStripMenuItem.Name = "ExitToolStripMenuItem"
-        Me.ExitToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.ExitToolStripMenuItem.Size = New System.Drawing.Size(147, 22)
         Me.ExitToolStripMenuItem.Text = "Exit"
+        '
+        'ClearLogFileToolStripMenuItem
+        '
+        Me.ClearLogFileToolStripMenuItem.Name = "ClearLogFileToolStripMenuItem"
+        Me.ClearLogFileToolStripMenuItem.Size = New System.Drawing.Size(147, 22)
+        Me.ClearLogFileToolStripMenuItem.Text = "Clear Log File"
         '
         'HelpToolStripMenuItem
         '
@@ -395,12 +401,6 @@ Partial Class frmMain
         Me.NotifyIcon1.Text = "NotifyIcon1"
         Me.NotifyIcon1.Visible = True
         '
-        'ClearLogFileToolStripMenuItem
-        '
-        Me.ClearLogFileToolStripMenuItem.Name = "ClearLogFileToolStripMenuItem"
-        Me.ClearLogFileToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
-        Me.ClearLogFileToolStripMenuItem.Text = "Clear Log File"
-        '
         'frmMain
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -424,7 +424,7 @@ Partial Class frmMain
         Me.MainMenuStrip = Me.MenuStrip1
         Me.Name = "frmMain"
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen
-        Me.Text = "VPN Lifeguard VB.Net"
+        Me.Text = "VPN Lifeguard VB.Net for Windows"
         Me.Panel1.ResumeLayout(False)
         Me.Panel1.PerformLayout()
         Me.Panel2.ResumeLayout(False)
