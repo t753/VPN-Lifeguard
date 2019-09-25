@@ -762,13 +762,7 @@ Public Sub timerReload_Timer()
   ' if disconnected = connect and reload apps
   
   timerReload.Delay = 10000 ' 10 seconds
- 
-  ' Check if there is a current internet connection  
-  ' Checks connection every 2 minutes
-  If CheckInternet = True Then
-    GetWebState()
-  Endif
- 
+  
   Print "ReConnectingVPN = ", ReConnectingVPN
  
   'Global vars
@@ -777,6 +771,12 @@ Public Sub timerReload_Timer()
   ' CheckingWebState = True if no internet connection found
   If ReConnectingVPN = True Or CheckingWebState = True Or ChangeConfig = True Then
     Return
+  Endif
+ 
+  ' Check if there is a current internet connection  
+  ' Checks connection every 2 minutes
+  If CheckInternet = True Then
+    GetWebState()
   Endif
    
   ' get status of all connections 
@@ -1072,6 +1072,7 @@ Public Sub ReConnectVPN(sRet As String)
        'Message("ConnectionTries = " & iConnectionTries)
           
         If InternetConnectLostQuitApp = False Then
+          Wait 5 '5s
           iConnectionTries = 0
         Endif
           
