@@ -744,6 +744,8 @@ Public Sub CheckConnections()
     sMessage = "VPN Connection good ... internet connection and vpn connection good ... " ' & GetTime()
   Endif
   
+  sMessage = AddTime(sMessage)
+  'Wait 0.1
   WriteToLogFile("Append", sMessage)
    
 End
@@ -912,6 +914,7 @@ Public Sub StartApps()
   
   lblStatusBar.Text = "Connected + monitoring : VPN = " & sVPNname
     
+  ' For itermtittent apps that can crash 
   If AppsStarted = True Then
     For Each chk In FMain.Controls 
       If (chk.Tag = "chkApplis") And If (chk.Text <> "") And If (chk.value = True) Then 
@@ -1010,7 +1013,8 @@ Public Sub ReConnectVPN(sRet As String)
   
   Dim iConnectionTries As Integer
   Dim sMessage As String
-  Dim sCommand As String
+  
+ Dim sCommand As String
  
   If sVPNname <> "" Then
       
@@ -1027,11 +1031,11 @@ Public Sub ReConnectVPN(sRet As String)
         Shell "nmcli con down id " & Shell$(sVPNname) Wait
       Endif
           
-      Print "Internet connection lost .. quitting VPN ... " 
-      sMessage = "Internet connection lost .. quitting VPN ... " 
-      sMessage = AddTime(sMessage)
+      sMessage = "Internet connection lost .. quitting VPN ... 1" 
+      Print sMessage
+      sMessage = AddTime(sMessage)     
       WriteToLogFile("Append", sMessage)
-
+ 
     Endif
       
     Wait 2 's
@@ -1045,16 +1049,15 @@ Public Sub ReConnectVPN(sRet As String)
     CheckConnections()
        
     If ActiveVPNConnectionFound = False And sVPNname <> "" And WebStateUp = True Then
-      
-  
+       
       ' re-establish vpn connection
       Shell "nmcli con up id " & Shell$(sVPNname) Wait
        
-      Print "Trying to reconnect VPN ... " 
-      sMessage = "Trying to reconnect VPN ... " 
+      sMessage = "Trying to reconnect VPN ... 2"  
+      Print sMessage
       sMessage = AddTime(sMessage)
       WriteToLogFile("Append", sMessage)
-       
+      
     End If
             
     Wait 1
@@ -1072,16 +1075,22 @@ Public Sub ReConnectVPN(sRet As String)
        'Message("ConnectionTries = " & iConnectionTries)
           
         If InternetConnectLostQuitApp = False Then
+          
+          sMessage = "Trying to reconnect VPN ... 3" 
+          Print sMessage
+          sMessage = AddTime(sMessage)
+          WriteToLogFile("Append", sMessage)
           Wait 5 '5s
           iConnectionTries = 0
+          
         Endif
           
         Goto Connect
           
       Endif
         
-      Print "VPN connection lost .. probably lost internet connection .. quitting VPN Lifegaurd ... " 
-      sMessage = "VPN connection lost .. probably lost internet connection .. quitting VPN Lifegaurd ... " 
+      sMessage = "VPN connection lost .. probably lost internet connection .. quitting VPN Lifegaurd ... 4" 
+      Print sMessage
       sMessage = AddTime(sMessage)
       WriteToLogFile("Append", sMessage)
       sCommand = "notify-send " & "'" & sMessage & "'"
@@ -1090,8 +1099,20 @@ Public Sub ReConnectVPN(sRet As String)
       
     Else If ActiveVPNConnectionFound = False And sVPNname <> "" And WebStateUp = False Then
       
-      Print "VPN connection lost .. probably lost internet connection .. quitting VPN Lifegaurd ... " 
-      sMessage = "VPN connection lost .. probably lost internet connection .. quitting VPN Lifegaurd ... " 
+       If InternetConnectLostQuitApp = False Then
+         
+          sMessage = "Trying to reconnect VPN ... 5" 
+          Print sMessage
+          sMessage = AddTime(sMessage)
+          WriteToLogFile("Append", sMessage)
+          Wait 5 '5s
+          iConnectionTries = 0
+          Goto Connect
+          
+        Endif
+      
+      sMessage = "VPN connection lost .. probably lost internet connection .. quitting VPN Lifegaurd ... 6" 
+      Print sMessage
       sMessage = AddTime(sMessage)
       WriteToLogFile("Append", sMessage)
       sCommand = "notify-send " & "'" & sMessage & "'"
@@ -1188,7 +1209,7 @@ Public Sub WriteToWebStatusFile(sMode As String, sMessage As String)
   If sMode = "Initialize" Then 
     
       ' Keep last 200 lines of log file
-      command = "tail -n 3600 " & FileName 
+      command = "tail -n 200 " & FileName 
       Shell command To last_lines
       WriteToFile(FileName, last_lines)
       AppendToFile(FileName, msg)
