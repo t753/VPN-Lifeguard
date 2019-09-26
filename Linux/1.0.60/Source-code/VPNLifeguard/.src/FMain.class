@@ -870,7 +870,8 @@ Public Sub GetWebState()
   
   Dim WebCheckMax As Integer = 12
   Dim Web_data_last_item As String 
-   
+  Dim sMessage As String
+ 
  CheckWeb:
   
    WebChecks += 1
@@ -894,6 +895,13 @@ Public Sub GetWebState()
       CheckingWebState = False
     Endif
   End If
+  
+  If WebStateUp = False Then
+    sMessage = "Check web state ... Internet connection lost ... " 
+    Print sMessage
+    sMessage = AddTime(sMessage)     
+    WriteToLogFile("Append", sMessage)
+  Endif
   
 End
 
@@ -962,22 +970,21 @@ Public Sub StartApps()
           
         If AppsInit = True Then
           sMessage = sApplications_Init & sApp & " ... " 
-          sMessage = AddTime(sMessage)
-        Else If Apps_Killed = True Then            
+       Else If Apps_Killed = True Then            
           sMessage = sEntry & sApp & " ... " 
-          sMessage = AddTime(sMessage)
-        Else If sAppsRestarted = True Then         
+       Else If sAppsRestarted = True Then         
           sMessage = sEntry2 & sApp & " ... " 
-          sMessage = AddTime(sMessage)
-        Else
+       Else
           sMessage = sCouldnt_Kill & sApp & " ... " 
-          sMessage = AddTime(sMessage)
-        Endif
-          
+       Endif
+  
+        sMessage = AddTime(sMessage)
+        
         Shell "pgrep " & chk.Text Wait To app_to_start
           
         If app_to_start = ""
           Shell "exec " & chk.Text 
+          WriteToLogFile("Append", sMessage)
         End If
           
         ' Wait for app to start
@@ -985,7 +992,6 @@ Public Sub StartApps()
           
         'WaitForAppsToStart = True
           
-        WriteToLogFile("Append", sMessage)
           
       Endif
         
