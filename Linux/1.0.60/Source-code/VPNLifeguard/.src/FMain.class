@@ -1012,26 +1012,25 @@ Public Sub ReConnectVPN(sRet As String)
   Dim ReStartApps As Boolean = False
   
   Dim iConnectionTries As Integer
-  Dim sMessage As String
-  
- Dim sCommand As String
+  Dim sMessage As String  
+  Dim sCommand As String
  
   If sVPNname <> "" Then
       
     ReConnectingVPN = True
+    
+    KillApplis()
       
    ' WebStateUp = 0 means not connected to the internet
     If InStr(sRet, sVPNname) <> 0 And WebStateUp = False Then
-        
-      KillApplis()
-      
+              
       CheckConnections()
         
       If ActiveVPNConnectionFound = True Then
         Shell "nmcli con down id " & Shell$(sVPNname) Wait
       Endif
           
-      sMessage = "Internet connection lost .. quitting VPN ... 1" 
+      sMessage = "Internet connection lost .. quitting VPN ... " 
       Print sMessage
       sMessage = AddTime(sMessage)     
       WriteToLogFile("Append", sMessage)
@@ -1048,12 +1047,12 @@ Public Sub ReConnectVPN(sRet As String)
       
     CheckConnections()
        
-    If ActiveVPNConnectionFound = False And sVPNname <> "" And WebStateUp = True Then
+    If ActiveVPNConnectionFound = False And sVPNname <> "" Then
        
       ' re-establish vpn connection
       Shell "nmcli con up id " & Shell$(sVPNname) Wait
        
-      sMessage = "Trying to reconnect VPN ... 2"  
+      sMessage = "Trying to reconnect VPN ... "  
       Print sMessage
       sMessage = AddTime(sMessage)
       WriteToLogFile("Append", sMessage)
@@ -1067,60 +1066,34 @@ Public Sub ReConnectVPN(sRet As String)
       
    ' if vpn not connected after 3 tries probably lost internet connection
    ' so quit VPN Lifeguard
-    If ActiveVPNConnectionFound = False And sVPNname <> "" And WebStateUp = True Then
+    If ActiveVPNConnectionFound = False And sVPNname <> "" Then
         
-      If iConnectionTries <= 2 Then
+      If iConnectionTries <= 5 Then
                   
         Print "ConnectionTries = ", iConnectionTries
        'Message("ConnectionTries = " & iConnectionTries)
           
         If InternetConnectLostQuitApp = False Then
           
-          sMessage = "Trying to reconnect VPN ... 3" 
-          Print sMessage
-          sMessage = AddTime(sMessage)
-          WriteToLogFile("Append", sMessage)
-          Wait 5 '5s
           iConnectionTries = 0
           
         Endif
-          
+ 
+        Wait 5 '5s
+       
         Goto Connect
           
       Endif
         
-      sMessage = "VPN connection lost .. probably lost internet connection .. quitting VPN Lifegaurd ... 4" 
+      sMessage = "VPN connection lost .. probably lost internet connection .. quitting VPN Lifegaurd ... " 
       Print sMessage
       sMessage = AddTime(sMessage)
       WriteToLogFile("Append", sMessage)
       sCommand = "notify-send " & "'" & sMessage & "'"
       Shell sCommand
       cmdQuit_Click()
-      
-    Else If ActiveVPNConnectionFound = False And sVPNname <> "" And WebStateUp = False Then
-      
-       If InternetConnectLostQuitApp = False Then
-         
-          sMessage = "Trying to reconnect VPN ... 5" 
-          Print sMessage
-          sMessage = AddTime(sMessage)
-          WriteToLogFile("Append", sMessage)
-          Wait 5 '5s
-          iConnectionTries = 0
-          Goto Connect
-          
-        Endif
-      
-      sMessage = "VPN connection lost .. probably lost internet connection .. quitting VPN Lifegaurd ... 6" 
-      Print sMessage
-      sMessage = AddTime(sMessage)
-      WriteToLogFile("Append", sMessage)
-      sCommand = "notify-send " & "'" & sMessage & "'"
-      Shell sCommand
-      cmdQuit_Click()
-      
         
-   Else If ActiveVPNConnectionFound = True And sVPNname <> "" And WebStateUp = True Then
+   Else If ActiveVPNConnectionFound = True And sVPNname <> "" Then
          
       ' flag that the vpn will be reconnected to restart monitored applications
       ReStartApps = True
