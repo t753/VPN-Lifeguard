@@ -7,7 +7,7 @@ Private sVPNnameSettings As String ' Name of VPN settings connection
 Private sApplis As String ' Name of the application in process
 Private sNumberApplis As String ' Number of applications
 
-Private bFlag As Boolean ' Flag of connection after disconnection
+Private bFlag As Boolean ' Flag of connection after disconnection ... used to start or re-start apps
 
 Public Apps_Killed As Boolean ' flag that apps have been killed
 Public ChangeVPN As Boolean = False ' flag to set true when VPN connection settings are being changed
@@ -777,6 +777,8 @@ Public Sub timerReload_Timer()
  
   ' Check if there is a current internet connection  
   ' Checks connection every 2 minutes
+  ' Added because vpn can still be active but with no internet connection
+  ' In this case we can shut down the vpn and re-start it once the internet connection is re-established
   If CheckInternet = True Then
     GetWebState()
   Endif
@@ -852,10 +854,10 @@ Public Function GetWebData() As String
   
   If Web_Data_Count >= WebCheckMax Or CheckingWebState = True Then
    
-    Print "Web_data_count = ", count
+   ' Print "Web_data_count = ", count
     Print "WebStatus = ", Web_data_last_item  
-    If Web_data_count >= WebCheckMax Then
-      Web_data_count = 0
+    If Web_Data_Count >= WebCheckMax Then
+      Web_Data_Count = 0
     End If
   
   End If
@@ -872,6 +874,7 @@ Public Sub GetWebState()
   Dim Web_data_last_item As String 
   Dim sMessage As String
  
+ 
  CheckWeb:
   
    WebChecks += 1
@@ -886,10 +889,11 @@ Public Sub GetWebState()
   Else
     WebStateUp = False
     If WebChecks <= 10 Then
+      lblStatusBar.Text = "Checking internet connection" 
       Print "Checking Web State"
       CheckingWebState = True
-      Wait 0.5
-      Web_data_count = WebCheckMax - 1
+      Wait 5 '10s
+      Web_Data_Count = WebCheckMax - 1
       Goto CheckWeb
     Else
       CheckingWebState = False
@@ -945,21 +949,21 @@ Public Sub StartApps()
     NotifySend("VPN connected", "")
     lblStatusBar.Text = "Connected and reloading applications..."
       
-    If WaitForAppsToStart = True Then
-        
-      ' Wait for apps to start ... so skip loading apps if already loading
-      WaitPeriods += 1
-        
-      If WaitPeriods > 1 Then
-        WaitForAppsToStart = False
-        WaitPeriods = 1
-      End If
-        
-      Return
-        
-        'Wait 21 ' 21 seconds
-        
-    Endif
+    ' If WaitForAppsToStart = True Then
+    '     
+    '   ' Wait for apps to start ... so skip loading apps if already loading
+    '   WaitPeriods += 1
+    '     
+    '   If WaitPeriods > 1 Then
+    '     WaitForAppsToStart = False
+    '     WaitPeriods = 1
+    '   End If
+    '     
+    '   Return
+    '     
+    '     'Wait 21 ' 21 seconds
+    '     
+    ' Endif
       
     For Each chk In FMain.Controls
       ' each checkbox
@@ -991,10 +995,9 @@ Public Sub StartApps()
         'Wait 11 ' 21 seconds
           
         'WaitForAppsToStart = True
-          
-          
-      Endif
-        
+                    
+      Endif  
+            
     Next
     
     AppsStarted = True
@@ -1002,12 +1005,17 @@ Public Sub StartApps()
     If AppsInit = True Then
       AppsInit = False
     Endif
+    If Apps_Killed = True Then
+      Apps_Killed = False
+    Endif
+    If sAppsRestarted = True Then
+      sAppsRestarted = False
+    Endif
       
     lblStatusBar.Text = "Connected + monitoring : VPN = " & sVPNname
       
   Endif
-
-  
+    
 End
 
 Public Sub ReConnectVPN(sRet As String)
@@ -1022,6 +1030,8 @@ Public Sub ReConnectVPN(sRet As String)
   Dim sCommand As String
  
   If sVPNname <> "" Then
+      
+    lblStatusBar.Text = "Trying to re-connect vpn connection" 
       
     ReConnectingVPN = True
     
@@ -1085,7 +1095,7 @@ Public Sub ReConnectVPN(sRet As String)
           
         Endif
  
-        Wait 5 '5s
+        Wait 5 '10s
        
         Goto Connect
           
